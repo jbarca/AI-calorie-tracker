@@ -232,7 +232,8 @@ export type SaveMealInput = {
 
 /**
  * Inserts (or updates) a meal and its items. Not transactional: items are written before the
- * removed ones are deleted, so a mid-way failure can leave extra rows but never loses data.
+ * removed ones are deleted, so a mid-way failure when editing can leave extra rows but never loses
+ * data. A failed insert of a new meal deletes the meal again, so a retry cannot duplicate it.
  */
 export async function saveMeal(input: SaveMealInput): Promise<string> {
   let mealId = input.mealId;
@@ -252,20 +253,28 @@ export async function saveMeal(input: SaveMealInput): Promise<string> {
     mealId = z.object({ id: z.string() }).parse(data).id;
   }
 
-  const rows = input.items.map((item) => ({ ...item, meal_id: mealId }));
-  const existing = rows.filter((r) => r.id);
-  const added = rows.filter((r) => !r.id);
-  if (existing.length) {
-    const { error } = await supabase.from('meal_items').upsert(existing);
-    if (error) throw error;
-  }
-  if (added.length) {
-    const { error } = await supabase.from('meal_items').insert(added);
-    if (error) throw error;
-  }
-  if (input.removedItemIds.length) {
-    const { error } = await supabase.from('meal_items').delete().in('id', input.removedItemIds);
-    if (error) throw error;
+  const savedMealId = mealId;
+  try {
+    const rows = input.items.map((item) => ({ ...item, meal_id: savedMealId }));
+    const existing = rows.filter((r) => r.id);
+    const added = rows.filter((r) => !r.id);
+    if (existing.length) {
+      const { error } = await supabase.from('meal_items').upsert(existing);
+      if (error) throw error;
+    }
+    if (added.length) {
+      const { error } = await supabase.from('meal_items').insert(added);
+      if (error) throw error;
+    }
+    if (input.removedItemIds.length) {
+      const { error } = await supabase.from('meal_items').delete().in('id', input.removedItemIds);
+      if (error) throw error;
+    }
+  } catch (err) {
+    // A meal created by this call must not outlive a failed item write: the caller still has no
+    // mealId, so tapping Save again would insert a second meal. Best effort; items cascade.
+    if (!input.mealId) await supabase.from('meals').delete().eq('id', savedMealId);
+    throw err;
   }
   return mealId;
 }

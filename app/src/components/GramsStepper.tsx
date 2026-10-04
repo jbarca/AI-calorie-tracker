@@ -22,9 +22,24 @@ export function GramsStepper({ grams, onChange, step = 10, label }: Props) {
     setText(String(grams));
   }
 
+  const parse = (value: string): number | null => {
+    if (value.trim() === '') return null;
+    const parsed = Number(value.replace(',', '.'));
+    return Number.isFinite(parsed) && parsed >= 0 ? Math.round(parsed) : null;
+  };
+
+  // Typed values are applied as they change, not only on blur: with keyboardShouldPersistTaps the
+  // Save button can be tapped without the field ever losing focus.
+  const handleChangeText = (value: string) => {
+    setText(value);
+    const parsed = parse(value);
+    if (parsed !== null) onChange(parsed);
+  };
+
+  // On blur, an empty or invalid entry reverts to the last applied value.
   const commit = () => {
-    const parsed = Number(text.replace(',', '.'));
-    if (Number.isFinite(parsed) && parsed >= 0) onChange(Math.round(parsed));
+    const parsed = parse(text);
+    if (parsed !== null) onChange(parsed);
     else setText(String(grams));
   };
 
@@ -49,7 +64,7 @@ export function GramsStepper({ grams, onChange, step = 10, label }: Props) {
       <TextInput
         accessibilityLabel={`${label} grams`}
         value={text}
-        onChangeText={setText}
+        onChangeText={handleChangeText}
         onEndEditing={commit}
         onSubmitEditing={commit}
         keyboardType="number-pad"

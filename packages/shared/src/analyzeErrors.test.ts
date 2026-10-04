@@ -10,6 +10,8 @@ describe('friendlyAnalyzeError', () => {
   it.each([
     [401, 'unauthorized', { signIn: true, retryable: false }],
     [404, 'image_not_found', { retryable: true }],
+    [404, 'scan_not_found', { retake: true, retryable: false }],
+    [403, 'forbidden_path', { retake: true, retryable: false }],
     [409, 'analysis_in_progress', { retryable: true, retake: false }],
     [413, 'image_too_large', { retake: true, retryable: false }],
     [415, 'unsupported_image_type', { retake: true }],

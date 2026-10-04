@@ -39,12 +39,21 @@ export function friendlyAnalyzeError(status: number | null, code?: string | null
       };
     case 403:
     case 404:
-      return {
-        ...base,
-        title: 'Photo not found',
-        message: 'The photo did not finish uploading. Try again.',
-        retryable: true,
-      };
+      // image_not_found: the client re-uploads on retry. scan_not_found / forbidden_path: the scan
+      // itself is unusable, so retrying the same call can never work; start a new scan instead.
+      return code === 'image_not_found'
+        ? {
+            ...base,
+            title: 'Photo not found',
+            message: 'The photo did not finish uploading. Try again.',
+            retryable: true,
+          }
+        : {
+            ...base,
+            title: 'Scan not found',
+            message: 'This scan is no longer available. Retake the photo to start again.',
+            retake: true,
+          };
     case 409:
       // analysis_in_progress: another request for this scan is still running.
       return {
