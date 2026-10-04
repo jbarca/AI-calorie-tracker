@@ -8,28 +8,15 @@
  */
 import Anthropic from '@anthropic-ai/sdk';
 import { encodeBase64 } from '@std/encoding/base64';
-import { z } from 'zod';
 import { analyzeWithClaude, EFFORT_LEVELS, MODEL } from '../claude.ts';
 import { detectImageType, MAX_IMAGE_BYTES } from '../image.ts';
+import { Dataset, type Entry } from './dataset.ts';
 import { type EvalRow, formatReport, summarize, totalTokens } from './metrics.ts';
 
 const EVAL_DIR = new URL('./', import.meta.url);
 const DATASET_URL = new URL('dataset.json', EVAL_DIR);
 const PHOTOS_URL = new URL('photos/', EVAL_DIR);
 const RESULTS_URL = new URL('results/', EVAL_DIR);
-
-const Dataset = z.array(
-  z.object({
-    /** File name under eval/photos/. */
-    image: z.string().min(1),
-    /** Ground-truth kcal; use 0 for non-food photos. */
-    true_kcal: z.number().nonnegative(),
-    /** Defaults to true. Set false for photos that do not show food. */
-    is_food: z.boolean().optional(),
-    notes: z.string().optional(),
-  }),
-);
-type Entry = z.infer<typeof Dataset>[number];
 
 function parseArgs(args: string[]): { yes: boolean; limit: number | null } {
   let yes = false;
@@ -76,6 +63,7 @@ async function evaluate(client: Anthropic, entry: Entry, effort: string): Promis
   const expected_is_food = entry.is_food ?? true;
   const base = {
     image: entry.image,
+    category: entry.category,
     true_kcal: entry.true_kcal,
     expected_is_food,
     predicted_kcal: null,

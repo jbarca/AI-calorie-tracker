@@ -1,0 +1,1079 @@
+[
+  {
+    "image": "n5k-dish_1560874548.jpg",
+    "true_kcal": 41,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1560874548/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1560874548: 72 g weighed; berries 72 g (portion pair: small and large of the same food)"
+  },
+  {
+    "image": "n5k-dish_1562085604.jpg",
+    "true_kcal": 241,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1562085604/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1562085604: 423 g weighed; berries 423 g (portion pair: small and large of the same food)"
+  },
+  {
+    "image": "n5k-dish_1557937335.jpg",
+    "true_kcal": 47,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1557937335/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1557937335: 38 g weighed; yam 38 g (portion pair: small and large of the same food)"
+  },
+  {
+    "image": "n5k-dish_1559751458.jpg",
+    "true_kcal": 153,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1559751458/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1559751458: 123 g weighed; yam 123 g (portion pair: small and large of the same food)"
+  },
+  {
+    "image": "n5k-dish_1558636868.jpg",
+    "true_kcal": 46,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558636868/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1558636868: 8 g weighed; almonds 8 g (portion pair: small and large of the same food)"
+  },
+  {
+    "image": "n5k-dish_1558719994.jpg",
+    "true_kcal": 769,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558719994/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1558719994: 133 g weighed; almonds 133 g (portion pair: small and large of the same food)"
+  },
+  {
+    "image": "n5k-dish_1564675380.jpg",
+    "true_kcal": 87,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1564675380/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1564675380: 23 g weighed; turkey bacon 23 g (portion pair: small and large of the same food)"
+  },
+  {
+    "image": "n5k-dish_1568305198.jpg",
+    "true_kcal": 311,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1568305198/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1568305198: 82 g weighed; turkey bacon 82 g (portion pair: small and large of the same food)"
+  },
+  {
+    "image": "n5k-dish_1558458737.jpg",
+    "true_kcal": 42,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558458737/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1558458737: 32 g weighed; white rice 32 g (portion pair: small and large of the same food)"
+  },
+  {
+    "image": "n5k-dish_1558459276.jpg",
+    "true_kcal": 103,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558459276/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1558459276: 79 g weighed; white rice 79 g (portion pair: small and large of the same food)"
+  },
+  {
+    "image": "n5k-dish_1566922978.jpg",
+    "true_kcal": 124,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566922978/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1566922978: 84 g weighed; scrambled eggs 84 g (portion pair: small and large of the same food)"
+  },
+  {
+    "image": "n5k-dish_1567107049.jpg",
+    "true_kcal": 107,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1567107049/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1567107049: 23 g weighed; brownies 23 g (portion pair: small and large of the same food)"
+  },
+  {
+    "image": "n5k-dish_1560888817.jpg",
+    "true_kcal": 48,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1560888817/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1560888817: 34 g weighed; roasted potatoes 34 g (portion pair: small and large of the same food)"
+  },
+  {
+    "image": "n5k-dish_1564589308.jpg",
+    "true_kcal": 227,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1564589308/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1564589308: 161 g weighed; roasted potatoes 161 g (portion pair: small and large of the same food)"
+  },
+  {
+    "image": "n5k-dish_1559059992.jpg",
+    "true_kcal": 71,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1559059992/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1559059992: 94 g weighed; sweet potato 94 g"
+  },
+  {
+    "image": "n5k-dish_1558638163.jpg",
+    "true_kcal": 41,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558638163/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1558638163: 99 g weighed; carrot 99 g"
+  },
+  {
+    "image": "n5k-dish_1558545738.jpg",
+    "true_kcal": 74,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558545738/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1558545738: 142 g weighed; apple 142 g"
+  },
+  {
+    "image": "n5k-dish_1566592456.jpg",
+    "true_kcal": 55,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566592456/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1566592456: 126 g weighed; caesar salad 126 g"
+  },
+  {
+    "image": "n5k-dish_1566329203.jpg",
+    "true_kcal": 94,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566329203/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1566329203: 377 g weighed; cauliflower 377 g"
+  },
+  {
+    "image": "n5k-dish_1566488905.jpg",
+    "true_kcal": 82,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566488905/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1566488905: 86 g weighed; sweet potato 84 g, olive oil 2 g"
+  },
+  {
+    "image": "n5k-dish_1567785654.jpg",
+    "true_kcal": 52,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1567785654/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1567785654: 96 g weighed; berries 54 g, pineapple 42 g"
+  },
+  {
+    "image": "n5k-dish_1563824304.jpg",
+    "true_kcal": 76,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563824304/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1563824304: 122 g weighed; bell peppers 43 g, onions 43 g, olives 36 g"
+  },
+  {
+    "image": "n5k-dish_1565711296.jpg",
+    "true_kcal": 43,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565711296/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1565711296: 110 g weighed; cantaloupe 93 g, grapes 17 g"
+  },
+  {
+    "image": "n5k-dish_1560529844.jpg",
+    "true_kcal": 92,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1560529844/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1560529844: 168 g weighed; berries 66 g, sweet potato 51 g, watermelon 51 g"
+  },
+  {
+    "image": "n5k-dish_1561061593.jpg",
+    "true_kcal": 42,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1561061593/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1561061593: 52 g weighed; kale 41 g, caesar dressing 7 g, parmesan cheese 4 g, croutons 0 g"
+  },
+  {
+    "image": "n5k-dish_1565724050.jpg",
+    "true_kcal": 85,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565724050/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1565724050: 72 g weighed; arugula 48 g, onions 8 g, olive oil 8 g, cranberries 4 g, vinegar 4 g, mustard 1 g, celery root 1 g, salt 0 g"
+  },
+  {
+    "image": "n5k-dish_1559678104.jpg",
+    "true_kcal": 100,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1559678104/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1559678104: 135 g weighed; broccoli 69 g, mixed greens 35 g, cherry tomatoes 9 g, cucumbers 7 g, olive oil 7 g, carrot 4 g, vinegar 3 g, garlic 1 g, parsley 0 g, salt 0 g"
+  },
+  {
+    "image": "n5k-dish_1568405405.jpg",
+    "true_kcal": 84,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1568405405/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1568405405: 74 g weighed; spinach (raw) 39 g, mustard greens 10 g, olive oil 8 g, cucumbers 8 g, tomatoes 5 g, vinegar 4 g, garlic 1 g, mustard 0 g, salt 0 g"
+  },
+  {
+    "image": "n5k-dish_1562945851.jpg",
+    "true_kcal": 91,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1562945851/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1562945851: 150 g weighed; berries 51 g, cantaloupe 35 g, honeydew melons 35 g, mixed greens 19 g, granola 5 g, vinaigrette 2 g, blackberries 2 g, raspberries 2 g"
+  },
+  {
+    "image": "n5k-dish_1562613867.jpg",
+    "true_kcal": 84,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1562613867/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1562613867: 57 g weighed; mustard greens 20 g, arugula 13 g, bulgur 7 g, apple 7 g, olive oil 5 g, parsley 1 g, cranberries 1 g, shallots 1 g, lemon juice 1 g, garlic 0 g, salt 0 g"
+  },
+  {
+    "image": "n5k-dish_1565034605.jpg",
+    "true_kcal": 52,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565034605/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1565034605: 52 g weighed; mixed greens 18 g, lettuce 12 g, cucumbers 6 g, olive oil 5 g, cherry tomatoes 5 g, vinegar 2 g, onions 2 g, lime 1 g, salt 0 g, pepper 0 g"
+  },
+  {
+    "image": "n5k-dish_1563393244.jpg",
+    "true_kcal": 58,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563393244/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1563393244: 280 g weighed; cucumbers 75 g, radishes 52 g, broccoli 39 g, squash 39 g, zucchini 39 g, onions 35 g"
+  },
+  {
+    "image": "n5k-dish_1560366389.jpg",
+    "true_kcal": 47,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1560366389/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1560366389: 38 g weighed; arugula 26 g, chard 5 g, olive oil 4 g, blueberries 2 g, walnuts 1 g, vinegar 1 g, mustard 0 g, salt 0 g, pepper 0 g"
+  },
+  {
+    "image": "n5k-dish_1559846585.jpg",
+    "true_kcal": 115,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1559846585/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1559846585: 201 g weighed; pears 201 g"
+  },
+  {
+    "image": "n5k-dish_1558629818.jpg",
+    "true_kcal": 156,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558629818/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1558629818: 27 g weighed; almonds 27 g"
+  },
+  {
+    "image": "n5k-dish_1558029518.jpg",
+    "true_kcal": 138,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558029518/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1558029518: 111 g weighed; yam 111 g"
+  },
+  {
+    "image": "n5k-dish_1558026714.jpg",
+    "true_kcal": 130,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558026714/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1558026714: 24 g weighed; bacon 24 g"
+  },
+  {
+    "image": "n5k-dish_1562688382.jpg",
+    "true_kcal": 114,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1562688382/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1562688382: 71 g weighed; chicken apple sausage 71 g"
+  },
+  {
+    "image": "n5k-dish_1566931519.jpg",
+    "true_kcal": 130,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566931519/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1566931519: 182 g weighed; mixed greens 91 g, olives 91 g"
+  },
+  {
+    "image": "n5k-dish_1565020822.jpg",
+    "true_kcal": 181,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565020822/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1565020822: 193 g weighed; sweet potato 92 g, egg whites 91 g, bacon 8 g, olive oil 2 g"
+  },
+  {
+    "image": "n5k-dish_1563827086.jpg",
+    "true_kcal": 199,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563827086/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1563827086: 175 g weighed; caesar salad 120 g, cheese pizza 55 g"
+  },
+  {
+    "image": "n5k-dish_1561576257.jpg",
+    "true_kcal": 181,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1561576257/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1561576257: 134 g weighed; roasted potatoes 103 g, olives 31 g"
+  },
+  {
+    "image": "n5k-dish_1566332116.jpg",
+    "true_kcal": 154,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566332116/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1566332116: 275 g weighed; olives 112 g, cucumbers 98 g, spinach (raw) 65 g"
+  },
+  {
+    "image": "n5k-dish_1558460908.jpg",
+    "true_kcal": 152,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558460908/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1558460908: 302 g weighed; apple 142 g, grapes 96 g, cherry tomatoes 56 g, spinach (raw) 8 g"
+  },
+  {
+    "image": "n5k-dish_1562958721.jpg",
+    "true_kcal": 126,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1562958721/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1562958721: 167 g weighed; rice noodles 64 g, mixed greens 32 g, cabbage 32 g, carrot 16 g, radishes 6 g, vinegar 6 g, olive oil 3 g, green onions 3 g, soy sauce 2 g, garlic 1 g"
+  },
+  {
+    "image": "n5k-dish_1560455203.jpg",
+    "true_kcal": 115,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1560455203/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1560455203: 188 g weighed; honeydew melons 95 g, green beans 38 g, arugula 19 g, mixed greens 13 g, lettuce 6 g, carrot 5 g, olive oil 5 g, pumpkin seeds 3 g, vinegar 3 g, mustard 0 g, salt 0 g"
+  },
+  {
+    "image": "n5k-dish_1562790170.jpg",
+    "true_kcal": 104,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1562790170/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1562790170: 84 g weighed; arugula 57 g, chard 10 g, olive oil 8 g, blueberries 4 g, walnuts 2 g, vinegar 2 g, mustard 1 g, salt 0 g, pepper 0 g"
+  },
+  {
+    "image": "n5k-dish_1561148336.jpg",
+    "true_kcal": 128,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1561148336/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1561148336: 68 g weighed; cheese pizza 45 g, arugula 7 g, mustard greens 5 g, tomatoes 2 g, cucumbers 2 g, cherry tomatoes 2 g, mangos 2 g, onions 0 g, lime 0 g, lemon juice 0 g, cilantro 0 g, olive oil 0 g, jalapenos 0 g, salt 0 g"
+  },
+  {
+    "image": "n5k-dish_1561405864.jpg",
+    "true_kcal": 197,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1561405864/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1561405864: 106 g weighed; chicken 62 g, cheese pizza 31 g, white rice 6 g, broccoli 2 g, spinach (raw) 2 g, green beans 2 g, garlic 1 g, green onions 0 g, soy sauce 0 g, vinegar 0 g, ginger 0 g, olive oil 0 g, salt 0 g"
+  },
+  {
+    "image": "n5k-dish_1567110519.jpg",
+    "true_kcal": 101,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1567110519/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1567110519: 100 g weighed; mixed greens 35 g, lettuce 23 g, cucumbers 12 g, olive oil 9 g, cherry tomatoes 9 g, onions 5 g, vinegar 5 g, lime 1 g, salt 1 g, pepper 0 g"
+  },
+  {
+    "image": "n5k-dish_1561753589.jpg",
+    "true_kcal": 139,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1561753589/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1561753589: 78 g weighed; salmon 59 g, brown rice 12 g, pepper 3 g, arugula 2 g, olive oil 2 g, salt 0 g, thyme 0 g"
+  },
+  {
+    "image": "n5k-dish_1559593746.jpg",
+    "true_kcal": 157,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1559593746/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1559593746: 186 g weighed; squash 80 g, arugula 47 g, kale 18 g, olive oil 10 g, chard 8 g, blueberries 6 g, quinoa 6 g, pepper 4 g, vinegar 3 g, walnuts 2 g, pumpkin seeds 1 g, mustard 1 g, salt 0 g"
+  },
+  {
+    "image": "n5k-dish_1566851549.jpg",
+    "true_kcal": 226,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566851549/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1566851549: 85 g weighed; cheese pizza 85 g"
+  },
+  {
+    "image": "n5k-dish_1558375833.jpg",
+    "true_kcal": 317,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558375833/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1558375833: 92 g weighed; sausage 92 g"
+  },
+  {
+    "image": "n5k-dish_1563295334.jpg",
+    "true_kcal": 229,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563295334/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1563295334: 96 g weighed; scrambled eggs 74 g, bacon 22 g"
+  },
+  {
+    "image": "n5k-dish_1563551134.jpg",
+    "true_kcal": 247,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563551134/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1563551134: 173 g weighed; egg whites 101 g, bagels 58 g, cream cheese 14 g"
+  },
+  {
+    "image": "n5k-dish_1561739238.jpg",
+    "true_kcal": 274,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1561739238/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1561739238: 257 g weighed; sweet potato 82 g, egg whites 71 g, berries 61 g, hash browns 43 g"
+  },
+  {
+    "image": "n5k-dish_1562172600.jpg",
+    "true_kcal": 264,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1562172600/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1562172600: 370 g weighed; egg whites 290 g, roasted potatoes 80 g"
+  },
+  {
+    "image": "n5k-dish_1562170331.jpg",
+    "true_kcal": 264,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1562170331/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1562170331: 400 g weighed; berries 178 g, pineapple 107 g, roasted potatoes 67 g, watermelon 48 g"
+  },
+  {
+    "image": "n5k-dish_1562950934.jpg",
+    "true_kcal": 304,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1562950934/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1562950934: 464 g weighed; egg whites 320 g, sweet potato 140 g, olive oil 4 g"
+  },
+  {
+    "image": "n5k-dish_1564775147.jpg",
+    "true_kcal": 328,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1564775147/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1564775147: 151 g weighed; salmon 93 g, lentils 19 g, mayonnaise 15 g, arugula 5 g, kale 5 g, cherry tomatoes 5 g, olive oil 4 g, pepper 2 g, parsley 1 g, shallots 1 g, garlic 1 g, pickles 1 g, lemon juice 1 g, salt 0 g, chive 0 g"
+  },
+  {
+    "image": "n5k-dish_1562691613.jpg",
+    "true_kcal": 214,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1562691613/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1562691613: 300 g weighed; egg whites 96 g, broccoli 89 g, yam 56 g, sweet potato 56 g, olive oil 2 g"
+  },
+  {
+    "image": "n5k-dish_1561663068.jpg",
+    "true_kcal": 333,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1561663068/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1561663068: 168 g weighed; cheese pizza 99 g, mixed greens 24 g, lettuce 16 g, cucumbers 8 g, olive oil 6 g, cherry tomatoes 6 g, onions 3 g, vinegar 3 g, lime 1 g, salt 0 g, pepper 0 g"
+  },
+  {
+    "image": "n5k-dish_1563222800.jpg",
+    "true_kcal": 302,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563222800/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1563222800: 146 g weighed; chicken breast 58 g, pepperoni pizza 48 g, pork 21 g, wheat berry 6 g, cherry tomatoes 3 g, white rice 3 g, spinach (raw) 1 g, parmesan cheese 1 g, zucchini 1 g, onions 1 g, garlic 1 g, arugula 1 g, olive oil 0 g, thyme 0 g, rosemary 0 g, salt 0 g, parsley 0 g"
+  },
+  {
+    "image": "n5k-dish_1565981898.jpg",
+    "true_kcal": 261,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565981898/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1565981898: 290 g weighed; tofu 105 g, arugula 62 g, carrot 46 g, fish 32 g, chard 14 g, olive oil 11 g, wheat berry 6 g, blueberries 4 g, walnuts 2 g, vinegar 2 g, cherry tomatoes 1 g, mustard 1 g, salt 1 g, shallots 1 g, lemon juice 1 g, parsley 0 g, garlic 0 g, pepper 0 g, chive 0 g"
+  },
+  {
+    "image": "n5k-dish_1564171888.jpg",
+    "true_kcal": 345,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1564171888/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1564171888: 194 g weighed; salmon 146 g, brown rice 29 g, pepper 7 g, arugula 6 g, olive oil 6 g, salt 0 g, thyme 0 g"
+  },
+  {
+    "image": "n5k-dish_1558639979.jpg",
+    "true_kcal": 520,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558639979/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1558639979: 90 g weighed; almonds 90 g"
+  },
+  {
+    "image": "n5k-dish_1558380527.jpg",
+    "true_kcal": 386,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558380527/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1558380527: 112 g weighed; sausage 112 g"
+  },
+  {
+    "image": "n5k-dish_1563389548.jpg",
+    "true_kcal": 439,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563389548/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1563389548: 194 g weighed; grilled chicken 194 g"
+  },
+  {
+    "image": "n5k-dish_1559842409.jpg",
+    "true_kcal": 359,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1559842409/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1559842409: 179 g weighed; mandarin oranges 53 g, almonds 53 g, strawberries 42 g, broccoli 31 g"
+  },
+  {
+    "image": "n5k-dish_1563984729.jpg",
+    "true_kcal": 496,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563984729/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1563984729: 321 g weighed; chicken apple sausage 172 g, scrambled eggs 149 g"
+  },
+  {
+    "image": "n5k-dish_1559849466.jpg",
+    "true_kcal": 468,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1559849466/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1559849466: 262 g weighed; pears 201 g, almonds 61 g"
+  },
+  {
+    "image": "n5k-dish_1562184628.jpg",
+    "true_kcal": 444,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1562184628/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1562184628: 121 g weighed; steak 78 g, bacon 43 g"
+  },
+  {
+    "image": "n5k-dish_1565972384.jpg",
+    "true_kcal": 432,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565972384/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1565972384: 706 g weighed; egg whites 557 g, sweet potato 145 g, olive oil 4 g"
+  },
+  {
+    "image": "n5k-dish_1562947469.jpg",
+    "true_kcal": 392,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1562947469/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1562947469: 320 g weighed; berries 117 g, roasted potatoes 78 g, pineapple 73 g, sausage 52 g"
+  },
+  {
+    "image": "n5k-dish_1565194823.jpg",
+    "true_kcal": 387,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565194823/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1565194823: 619 g weighed; egg whites 378 g, sweet potato 129 g, carrot 57 g, grapes 51 g, olive oil 4 g, salt 0 g, pepper 0 g"
+  },
+  {
+    "image": "n5k-dish_1563219009.jpg",
+    "true_kcal": 388,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1563219009/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1563219009: 202 g weighed; pork 100 g, pepperoni pizza 41 g, celery 30 g, white rice 13 g, zucchini 7 g, onions 5 g, arugula 3 g, garlic 1 g, rosemary 1 g, olive oil 1 g, parsley 0 g, salt 0 g"
+  },
+  {
+    "image": "n5k-dish_1565896745.jpg",
+    "true_kcal": 369,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565896745/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1565896745: 244 g weighed; steak 93 g, arugula 41 g, chard 36 g, kale 28 g, wheat berry 19 g, cauliflower 12 g, olive oil 6 g, blueberries 3 g, walnuts 1 g, vinegar 1 g, garlic 1 g, lime 1 g, salt 1 g, mustard 0 g, pepper 0 g"
+  },
+  {
+    "image": "n5k-dish_1564516483.jpg",
+    "true_kcal": 364,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1564516483/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1564516483: 374 g weighed; carrot 106 g, fish 87 g, chicken breast 80 g, cherry tomatoes 32 g, olives 27 g, white beans 17 g, olive oil 5 g, onions 4 g, artichokes 4 g, snow peas 3 g, arugula 3 g, lime 2 g, bell peppers 2 g, salt 1 g, garlic 0 g, parsley 0 g, chive 0 g, pepper 0 g"
+  },
+  {
+    "image": "n5k-dish_1561404505.jpg",
+    "true_kcal": 544,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1561404505/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1561404505: 442 g weighed; steak 124 g, broccoli 93 g, carrot 89 g, mixed greens 45 g, wheat berry 25 g, cauliflower 16 g, cherry tomatoes 11 g, cucumbers 11 g, olive oil 10 g, beets 7 g, vinegar 5 g, garlic 3 g, lime 2 g, salt 1 g, pepper 0 g"
+  },
+  {
+    "image": "n5k-dish_1566333228.jpg",
+    "true_kcal": 499,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566333228/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1566333228: 304 g weighed; cheese pizza 90 g, caesar salad 84 g, chicken 46 g, beef 38 g, millet 16 g, bell peppers 6 g, tomatoes 6 g, onions 4 g, shallots 3 g, olive oil 3 g, jalapenos 2 g, spinach (raw) 2 g, bok choy 1 g, spinach (cooked) 1 g, salt 1 g, garlic 1 g, pepper 0 g, vinegar 0 g"
+  },
+  {
+    "image": "n5k-dish_1566419603.jpg",
+    "true_kcal": 383,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566419603/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1566419603: 252 g weighed; cheese pizza 103 g, caesar salad 74 g, roasted potatoes 42 g, green beans 32 g, olive oil 1 g"
+  },
+  {
+    "image": "n5k-dish_1561749857.jpg",
+    "true_kcal": 367,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1561749857/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1561749857: 447 g weighed; salmon 122 g, broccoli 87 g, cherry tomatoes 66 g, cucumbers 55 g, brussels sprouts 51 g, radishes 25 g, brown rice 24 g, pepper 6 g, olive oil 5 g, arugula 5 g, salt 1 g, thyme 0 g"
+  },
+  {
+    "image": "n5k-dish_1558549413.jpg",
+    "true_kcal": 682,
+    "category": "single-food",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558549413/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1558549413: 118 g weighed; almonds 118 g"
+  },
+  {
+    "image": "n5k-dish_1559668314.jpg",
+    "true_kcal": 552,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1559668314/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1559668314: 300 g weighed; scrambled eggs 150 g, hash browns 89 g, garden salad 61 g"
+  },
+  {
+    "image": "n5k-dish_1565370004.jpg",
+    "true_kcal": 571,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565370004/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1565370004: 370 g weighed; scrambled eggs 236 g, green beans 100 g, bacon 31 g, olive oil 3 g"
+  },
+  {
+    "image": "n5k-dish_1558116298.jpg",
+    "true_kcal": 855,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1558116298/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1558116298: 368 g weighed; grapes 111 g, cantaloupe 91 g, sausage 91 g, almonds 75 g"
+  },
+  {
+    "image": "n5k-dish_1568318408.jpg",
+    "true_kcal": 907,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1568318408/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1568318408: 563 g weighed; chicken 222 g, steak 182 g, mixed greens 115 g, broccoli 44 g"
+  },
+  {
+    "image": "n5k-dish_1560887480.jpg",
+    "true_kcal": 668,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1560887480/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1560887480: 374 g weighed; pizza 122 g, beef 99 g, eggplant 74 g, kale 42 g, white rice 13 g, broccoli 7 g, caesar dressing 6 g, parmesan cheese 4 g, olive oil 2 g, onions 1 g, salt 1 g, vinegar 1 g, orange juice 1 g, chili 1 g, garlic 1 g, soy sauce 1 g, green onions 1 g, croutons 0 g"
+  },
+  {
+    "image": "n5k-dish_1565030391.jpg",
+    "true_kcal": 609,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1565030391/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1565030391: 313 g weighed; beef 193 g, white rice 26 g, mixed greens 22 g, lettuce 14 g, broccoli 13 g, olive oil 8 g, cucumbers 7 g, kale 6 g, cherry tomatoes 6 g, onions 5 g, vinegar 4 g, garlic 1 g, orange juice 1 g, green onions 1 g, soy sauce 1 g, chili 1 g, lime 1 g, salt 1 g, pepper 0 g"
+  },
+  {
+    "image": "n5k-dish_1568319838.jpg",
+    "true_kcal": 608,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1568319838/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1568319838: 312 g weighed; salmon 117 g, pizza 92 g, brown rice 23 g, bell peppers 14 g, cucumbers 14 g, olive oil 12 g, radishes 11 g, spinach (raw) 6 g, vinegar 6 g, garlic 4 g, shallots 4 g, onions 2 g, lemon juice 1 g, cilantro 1 g, jalapenos 1 g, mustard 1 g, salt 1 g, ginger 1 g, chili 0 g, lime 0 g"
+  },
+  {
+    "image": "n5k-dish_1568315088.jpg",
+    "true_kcal": 582,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1568315088/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1568315088: 423 g weighed; avocado 90 g, salmon 86 g, beef 55 g, tomatoes 44 g, mushroom 39 g, quinoa 35 g, olives 23 g, brown rice 17 g, millet 7 g, shallots 6 g, spinach (raw) 4 g, onions 4 g, garlic 3 g, olive oil 2 g, spinach (cooked) 2 g, bok choy 2 g, cilantro 1 g, lemon juice 1 g, jalapenos 1 g, ginger 0 g, salt 0 g, chili 0 g, lime 0 g, vinegar 0 g"
+  },
+  {
+    "image": "n5k-dish_1566849987.jpg",
+    "true_kcal": 563,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566849987/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1566849987: 540 g weighed; chicken 252 g, cherry tomatoes 87 g, carrot 86 g, olives 67 g, onions 48 g"
+  },
+  {
+    "image": "n5k-dish_1566413510.jpg",
+    "true_kcal": 751,
+    "category": "mixed-plate",
+    "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566413510/rgb.png",
+    "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
+    "notes": "Nutrition5k dish_1566413510: 412 g weighed; chicken 103 g, olives 80 g, broccoli 67 g, spinach (raw) 61 g, avocado 49 g, olive oil 33 g, parmesan cheese 19 g"
+  },
+  {
+    "image": "off-5449000000996.jpg",
+    "true_kcal": 139,
+    "category": "drink",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/544/900/000/0996/4.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Coca-Cola Coke Original Taste (33 cl), whole pack; 42 kcal/100 x 330; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-5053990107339.jpg",
+    "true_kcal": 211,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/505/399/010/7339/8.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Pringles Original (40g), whole pack; 528 kcal/100 x 40; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-5053990107384.jpg",
+    "true_kcal": 207,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/505/399/010/7384/1.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Pringles sour cream & onion (40g), whole pack; 517.5 kcal/100 x 40; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-5060088700105.jpg",
+    "true_kcal": 191,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/506/008/870/0105/7.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "nākd NAKD PROTEIN - Cacao noisette - 45g (16x1p) (45 g), whole pack; 424 kcal/100 x 45; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-5900951313592.jpg",
+    "true_kcal": 246,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/590/095/131/3592/4.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Twix (50g), whole pack; 493 kcal/100 x 50; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-8410076901033.jpg",
+    "true_kcal": 198,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/841/007/690/1033/3.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Nature Valley Barrette Proteiche al Caramello Salato (40g), whole pack; 495 kcal/100 x 40; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-4056489724070.jpg",
+    "true_kcal": 264,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/405/648/972/4070/1.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Milbona Mousse Proteica Gusto Cioccolato (175 gram), whole pack; 151 kcal/100 x 175; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-5449000011527.jpg",
+    "true_kcal": 63,
+    "category": "drink",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/544/900/001/1527/6.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Fanta Orange (330ml), whole pack; 19 kcal/100 x 330; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-5060088700082.jpg",
+    "true_kcal": 199,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/506/008/870/0082/8.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "nākd Peanut Butter Protein Bars (45 g), whole pack; 443 kcal/100 x 45; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-4056489920045.jpg",
+    "true_kcal": 122,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/405/648/992/0045/2.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Milbona High Protein Pudding Chocolate & Caramel Flavour (150g), whole pack; 81 kcal/100 x 150; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-5391532121710.jpg",
+    "true_kcal": 204,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/539/153/212/1710/5.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Fulfil Vitamin & Protein Bar (55 g), whole pack; 371.5 kcal/100 x 55; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-0016000264694.jpg",
+    "true_kcal": 191,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/001/600/026/4694/4.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Nature Valley Oats 'N Honey Granola Bars (1.4oz (42 g)), whole pack; 452.3 kcal/100 x 42.2; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-4000417702005.jpg",
+    "true_kcal": 577,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/400/041/770/2005/2.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Ritter Sport DARK WHOLE HAZELNUTS (100 gram), whole pack; 577 kcal/100 x 100; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-5060283760072.jpg",
+    "true_kcal": 126,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/506/028/376/0072/8.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "PROPER CORN SWEET & SALTY Popcorn (28 gram), whole pack; pack front states 126 kcal; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-8801073113893.jpg",
+    "true_kcal": 550,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/880/107/311/3893/1.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Samyang Buldak Spicy Ramen Artificial Spicy Chicken Flavor (130g), whole pack; 423.0 kcal/100 x 130; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-4100290080389.jpg",
+    "true_kcal": 154,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/410/029/008/0389/1.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Arla Protein Chocolate Flavour Pudding (200 g), whole pack; 77 kcal/100 x 200; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-8850389100684.jpg",
+    "true_kcal": 170,
+    "category": "drink",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/885/038/910/0684/3.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Sappe Public Company Limited Mogu lychee (320 ml), whole pack; 53 kcal/100 x 320; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-4056489291176.jpg",
+    "true_kcal": 572,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/405/648/929/1176/1.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "chef select Butter Chicken (360g), whole pack; 159 kcal/100 x 360; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-4056489181415.jpg",
+    "true_kcal": 48,
+    "category": "drink",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/405/648/918/1415/6.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Solevita Organic Ginger Turmeric Shot (150ml), whole pack; 32 kcal/100 x 150; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-5036589252597.jpg",
+    "true_kcal": 284,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/503/658/925/2597/1.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Yeo Valley Kefir, Mango and Passion Fruit (350g), whole pack; 81 kcal/100 x 350; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-5060925290752.jpg",
+    "true_kcal": 400,
+    "category": "drink",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/506/092/529/0752/1.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Huel Black Chocolate Ready To Drink (500ml), whole pack; 80 kcal/100 x 500; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-5060088705179.jpg",
+    "true_kcal": 155,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/506/008/870/5179/2.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "nakd raw fruit & nut bar (35 g), whole pack; 442.8 kcal/100 x 35; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-0044000028282.jpg",
+    "true_kcal": 230,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/004/400/002/8282/2.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "belVita Crunchy Blueberry Breakfast Biscuits (1.7oz), whole pack; 460 kcal/100 x 49.8; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-8008698002070.jpg",
+    "true_kcal": 289,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/800/869/800/2070/5.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Schar Salinis (60 gram), whole pack; 482 kcal/100 x 60; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-0722252387530.jpg",
+    "true_kcal": 264,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/072/225/238/7530/3.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Clif Bar Crunchy Peanut Butter (68 g), whole pack; 388 kcal/100 x 68; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-3335880004112.jpg",
+    "true_kcal": 383,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/333/588/000/4112/4.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "ProSain Risotto aux cèpes - riz de Camargue IGP, courgettes et petits oignons (365 g), whole pack; 105 kcal/100 x 365; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-5449000227409.jpg",
+    "true_kcal": 118,
+    "category": "drink",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/544/900/022/7409/1.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Appletiser 100% Apple Juice (250 ml), whole pack; label: 47 kcal/100 ml, 118 kcal per 250 ml can; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-7622300331283.jpg",
+    "true_kcal": 256,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/762/230/033/1283/10.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Mondelez Вафла МОРЕНИ maxx (49 г), whole pack; 522 kcal/100 x 49; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-8004030022010.jpg",
+    "true_kcal": 300,
+    "category": "packaged",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/800/403/002/2010/6.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "RIO mare Light Tuna Salad Corn with peas, carrots and black olives (160 g), whole pack; 187.5 kcal/100 x 160; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-8008440214065.jpg",
+    "true_kcal": 78,
+    "category": "drink",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/800/844/021/4065/1.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "BIRRA PERONI NON-ALCOHOLIC BEER (330 ml), whole pack; 23.6 kcal/100 x 330; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-0643843714507.jpg",
+    "true_kcal": 160,
+    "category": "drink",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/064/384/371/4507/1.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Premier Protein Vanilla Protein Shake (11 ounces), whole pack; 51.3 kcal/100 x 311.8; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-5038862139991.jpg",
+    "true_kcal": 135,
+    "category": "drink",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/503/886/213/9991/7.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "innocent BLUE BOLT (330 mL), whole pack; label: 41 kcal/100 ml x 330 ml; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-5060166690007.jpg",
+    "true_kcal": 235,
+    "category": "drink",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/506/016/669/0007/11.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Monster Energy (500 ml), whole pack; 47 kcal/100 x 500; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-5060430292920.jpg",
+    "true_kcal": 302,
+    "category": "drink",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/506/043/029/2920/1.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "BOL Vanilla power shake (410g), whole pack; 73.7 kcal/100 x 410; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "off-4056489005568.jpg",
+    "true_kcal": 50,
+    "category": "drink",
+    "source": "https://openfoodfacts-images.s3.eu-west-3.amazonaws.com/data/405/648/900/5568/5.jpg",
+    "license": "Open Food Facts, CC BY-SA 3.0",
+    "notes": "Kong Strong Kong Strong Wild Power Energy Drink Classic (250 ml), whole pack; 20 kcal/100 x 250; kcal matched against the label's OCR text"
+  },
+  {
+    "image": "nonfood-astronaut.jpg",
+    "true_kcal": 0,
+    "is_food": false,
+    "category": "non-food",
+    "source": "https://raw.githubusercontent.com/scikit-image/scikit-image/v0.25.2/skimage/data/astronaut.png",
+    "license": "NASA, public domain (scikit-image sample data)",
+    "notes": "Portrait of astronaut Eileen Collins; non-food control"
+  },
+  {
+    "image": "nonfood-cat.jpg",
+    "true_kcal": 0,
+    "is_food": false,
+    "category": "non-food",
+    "source": "https://raw.githubusercontent.com/scikit-image/scikit-image/v0.25.2/skimage/data/chelsea.png",
+    "license": "CC0, Stefan van der Walt (scikit-image sample data)",
+    "notes": "A cat; non-food control"
+  },
+  {
+    "image": "nonfood-rocket.jpg",
+    "true_kcal": 0,
+    "is_food": false,
+    "category": "non-food",
+    "source": "https://raw.githubusercontent.com/scikit-image/scikit-image/v0.25.2/skimage/data/rocket.jpg",
+    "license": "SpaceX, public domain (scikit-image sample data)",
+    "notes": "Falcon 9 launch; non-food control"
+  },
+  {
+    "image": "nonfood-building.jpg",
+    "true_kcal": 0,
+    "is_food": false,
+    "category": "non-food",
+    "source": "https://raw.githubusercontent.com/scikit-learn/scikit-learn/1.5.2/sklearn/datasets/images/china.jpg",
+    "license": "CC BY 2.0, danielbuechele (scikit-learn sample data)",
+    "notes": "Temple building; non-food control"
+  },
+  {
+    "image": "nonfood-flower.jpg",
+    "true_kcal": 0,
+    "is_food": false,
+    "category": "non-food",
+    "source": "https://raw.githubusercontent.com/scikit-learn/scikit-learn/1.5.2/sklearn/datasets/images/flower.jpg",
+    "license": "CC BY 2.0, vultilion (scikit-learn sample data)",
+    "notes": "A flower, close up; non-food control"
+  }
+]
