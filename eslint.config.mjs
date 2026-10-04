@@ -40,8 +40,13 @@ export default tseslint.config(
     },
   },
   {
-    // Node-side config files
-    files: ['**/*.config.{js,mjs,cjs,ts}', '**/babel.config.js', '**/metro.config.js'],
+    // Node-side config files and repo scripts
+    files: [
+      '**/*.config.{js,mjs,cjs,ts}',
+      '**/babel.config.js',
+      '**/metro.config.js',
+      'scripts/**/*.{js,mjs}',
+    ],
     languageOptions: { globals: globals.node },
   },
   {

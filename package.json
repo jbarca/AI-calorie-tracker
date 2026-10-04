@@ -11,8 +11,10 @@
     "lint": "eslint .",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "test:functions": "deno test --config supabase/functions/analyze-meal/deno.json supabase/functions/analyze-meal",
-    "check:functions": "deno check --config supabase/functions/analyze-meal/deno.json supabase/functions/analyze-meal/*.ts && deno lint --config supabase/functions/analyze-meal/deno.json supabase/functions/analyze-meal",
+    "test:functions": "node scripts/functions.mjs test",
+    "check:functions": "node scripts/functions.mjs check",
+    "sync:shared": "node scripts/sync-shared.mjs",
+    "check:shared-sync": "node scripts/sync-shared.mjs --check",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

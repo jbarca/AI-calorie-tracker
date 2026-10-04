@@ -1,0 +1,18 @@
+[
+  {
+    "image": "chicken-rice-01.jpg",
+    "true_kcal": 610,
+    "notes": "150 g grilled chicken breast, 180 g cooked white rice, 1 tsp oil; weighed, USDA FDC"
+  },
+  {
+    "image": "oat-latte-01.jpg",
+    "true_kcal": 160,
+    "notes": "350 ml oat milk latte; label values"
+  },
+  {
+    "image": "desk-keyboard-01.jpg",
+    "true_kcal": 0,
+    "is_food": false,
+    "notes": "non-food control"
+  }
+]

@@ -18,8 +18,10 @@ See [`docs/IMPLEMENTATION_PLAN.md`](docs/IMPLEMENTATION_PLAN.md) for the full pl
 ```
 app/                 Expo app (routes in app/app, non-route code in app/src)
 packages/shared/     @calorie/shared: MealAnalysis Zod schema + types
-supabase/            Supabase config, migrations, seed, Edge Functions
-docs/                Implementation plan
+supabase/            Supabase config, migrations, pgTAP tests, seed, Edge Functions
+scripts/             Repo scripts (shared-code sync, per-function Deno test/check)
+docs/                Implementation plan, device QA checklist
+.github/workflows/   CI
 ```
 
 ## Prerequisites
@@ -55,14 +57,16 @@ cd app && npx expo start
 
 ## Scripts (repo root)
 
-| Command                   | What it does                                                       |
-| ------------------------- | ------------------------------------------------------------------ |
-| `npm run lint`            | ESLint (flat config) across the repo                               |
-| `npm run typecheck`       | `tsc --noEmit` in every workspace                                  |
-| `npm test`                | Tests in every workspace (Vitest in shared, Jest + RNTL in app)    |
-| `npm run test:functions`  | `deno test` for the Edge Function (fake Claude client, no API use) |
-| `npm run check:functions` | `deno check` + `deno lint` for the Edge Function                   |
-| `npm run format`          | Prettier write (`format:check` to verify)                          |
+| Command                     | What it does                                                    |
+| --------------------------- | --------------------------------------------------------------- |
+| `npm run lint`              | ESLint (flat config) across the repo                            |
+| `npm run typecheck`         | `tsc --noEmit` in every workspace                               |
+| `npm test`                  | Tests in every workspace (Vitest in shared, Jest + RNTL in app) |
+| `npm run test:functions`    | `deno test` for every Edge Function (fakes only, no API use)    |
+| `npm run check:functions`   | `deno check` + `deno lint` for every Edge Function              |
+| `npm run sync:shared`       | Copy `packages/shared/src` into the functions' `_shared` folder |
+| `npm run check:shared-sync` | Fail if that copy is out of date (CI runs this)                 |
+| `npm run format`            | Prettier write (`format:check` to verify)                       |
 
 The `*:functions` scripts need [Deno](https://docs.deno.com/runtime/getting_started/installation/)
 2.x on your PATH (`npm i -g deno` works).
@@ -79,7 +83,7 @@ Expo Router screens live in `app/app`, everything else in `app/src` (imported as
 | `(tabs)/index` (Today) | Calorie ring vs goal, macro bar, today's meals (tap to edit, long-press to delete) |
 | `(tabs)/scan`          | Camera (flash, gallery fallback, optional hint) → analyze → review                 |
 | `(tabs)/history`       | Last 30 days grouped by local day, 7-day kcal bar chart                            |
-| `(tabs)/settings`      | Daily kcal goal (1-20000), sign out, delete account (backend pending)              |
+| `(tabs)/settings`      | Daily kcal goal (1-20000), sign out, delete account (type-to-confirm)              |
 | `review/[scanId]`      | Edit the AI result and save it; `?mealId=` edits a saved meal                      |
 | `add-text`             | Manual entry: describe a meal, analyze-meal estimates it without a photo           |
 
@@ -97,10 +101,70 @@ Expo Router screens live in `app/app`, everything else in `app/src` (imported as
   `packages/shared/src` with Vitest tests; component tests use Jest (`jest-expo`) and React Native
   Testing Library in `app/src/__tests__`.
 
-The code-entry path needs the magic-link email template to include `{{ .Token }}` (Supabase's
-default template only has the link). Sign in with Apple needs a development build (not Expo Go), an `ios.bundleIdentifier`, and the
-Apple provider enabled in Supabase with that bundle id as a client id. Google needs the Google
-provider enabled in Supabase (`[auth.external.google]`).
+The one-time Supabase setup below (email template, Google and Apple providers) is required for
+every sign-in method except the magic link. Manual device testing is in
+[`docs/QA.md`](docs/QA.md).
+
+## Shared code in Edge Functions (`sync:shared`)
+
+`packages/shared/src` is the single source of truth for the Zod schemas and pure helpers. The app
+imports it as `@calorie/shared`. Edge Functions cannot import from outside `supabase/functions/`
+when deployed, so `npm run sync:shared` copies the non-test `.ts` files into
+`supabase/functions/_shared/calorie-shared/` (each with a "GENERATED ... do not edit" header), and
+each function's `deno.json` maps `@calorie/shared` to `../_shared/calorie-shared/index.ts`.
+
+- Edit `packages/shared/src`, never the generated copy.
+- After any change there, run `npm run sync:shared` and commit the result with your change.
+- `npm run check:shared-sync` (run in CI) fails and lists the files if the copy is stale.
+
+## One-time Supabase setup (hosted project)
+
+Do this once per Supabase project, in the dashboard unless noted.
+
+1. **Magic-link email template:** Authentication → Emails → Magic Link. Include the 6-digit code,
+   e.g. `<p>Your code: {{ .Token }}</p>`, next to the link. The default template only has the
+   link, and the app's code-entry path needs `{{ .Token }}`.
+2. **Redirect URLs:** Authentication → URL Configuration. Add `aicalorietracker://**` (and
+   `exp://**` while using Expo Go), matching `additional_redirect_urls` in `supabase/config.toml`.
+3. **Google provider:** Authentication → Providers → Google. Enable it with a Google Cloud OAuth
+   client (web application) id and secret, and add the Supabase callback URL shown there to the
+   Google client's authorised redirect URIs.
+4. **Apple provider:**
+   - Set `expo.ios.bundleIdentifier` in `app/app.json` (e.g. `com.yourname.aicalorietracker`).
+   - Authentication → Providers → Apple. Enable it and add that bundle id to the client ids.
+   - Sign in with Apple only works in a development build (`npx expo run:ios` or an EAS dev
+     build), not in Expo Go.
+5. **Function secrets** (CLI, after `npx supabase link --project-ref <project-ref>`):
+
+   ```bash
+   npx supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
+   npx supabase secrets set SCAN_RATE_LIMIT_PER_HOUR=30 ANALYZE_EFFORT=medium   # optional
+   ```
+
+6. **Database and functions:**
+
+   ```bash
+   npx supabase db push
+   npm run check:shared-sync          # the deployed copy must match packages/shared
+   npx supabase functions deploy analyze-meal
+   npx supabase functions deploy delete-account
+   ```
+
+7. Point `app/.env` at the project (Project Settings → API: URL and anon key).
+
+## CI
+
+`.github/workflows/ci.yml` runs on pull requests, on pushes to `main` and on pushes to `claude/**`
+branches. Superseded runs of the same branch are cancelled. Jobs:
+
+| Job         | What it runs                                                                                                   |
+| ----------- | -------------------------------------------------------------------------------------------------------------- |
+| `node`      | `npm ci`, `lint`, `typecheck`, `test`, `format:check`, `check:shared-sync`                                     |
+| `functions` | Deno 2.x: `test:functions`, `check:functions`                                                                  |
+| `database`  | Supabase CLI: `supabase start`, `db reset`, `test db` (pgTAP in `supabase/tests`), `db lint` (fails on errors) |
+| `expo`      | `npx expo export --platform android` with dummy `EXPO_PUBLIC_*` values, as a bundle smoke test                 |
+
+The accuracy eval never runs in CI (it calls the paid API).
 
 ## Edge Function: `analyze-meal`
 
@@ -149,9 +213,10 @@ npx supabase link --project-ref <project-ref>
 npx supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
 npx supabase secrets set SCAN_RATE_LIMIT_PER_HOUR=30 ANALYZE_EFFORT=medium   # optional
 npx supabase functions deploy analyze-meal
+npx supabase functions deploy delete-account
 ```
 
 **Test** with `npm run test:functions`. The tests use a fake Anthropic client and a fake
-Supabase client, so they never call the real API. The planned accuracy eval (about 20 labeled
-photos, scored by MAPE) is described in
+Supabase client, so they never call the real API. The accuracy eval (labelled photos, scored by
+MAPE, bias, ±20% hit rate and non-food accuracy) is run by hand with your own API key; see
 [`supabase/functions/analyze-meal/eval/README.md`](supabase/functions/analyze-meal/eval/README.md).

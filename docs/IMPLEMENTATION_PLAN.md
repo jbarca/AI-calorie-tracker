@@ -1,5 +1,23 @@
 # Implementation Plan — AI Calorie Tracker (camera scanning)
 
+## Status (October 2026)
+
+| Phase | State |
+| --- | --- |
+| 1. Scaffolding | Done |
+| 2. Data model | Done (plus `harden_scans` and `scan_attempts` migrations: atomic per-user claim, retries count toward the rate limit) |
+| 3. `analyze-meal` Edge Function | Done |
+| 4. Mobile app | Done, including delete account (`delete-account` Edge Function) |
+| 5. Quality, testing, delivery | Done in code: unit tests, Deno function tests, pgTAP tests, CI (`.github/workflows/ci.yml`), accuracy-eval runner, `docs/QA.md` |
+
+Shared code reaches the Edge Functions through a generated copy in `supabase/functions/_shared/calorie-shared/` (`npm run sync:shared`; CI fails if it is stale), so deploys do not import from outside `supabase/`.
+
+**Known gaps (need a human, a device or a real project):**
+- **Device testing:** nothing has run on a phone or simulator yet. Work through `docs/QA.md` on iOS (dev build, for Sign in with Apple) and Android.
+- **Real eval:** `supabase/functions/analyze-meal/eval/run.ts` exists but has never been run. It needs ~20 weighed, labelled photos and an API key; record the baseline MAPE in the eval README.
+- **Deploy:** neither function has been deployed and the one-time Supabase setup in the README (email template, OAuth providers, secrets) has not been done on a real project.
+- **First CI run:** the `database` job is the first time the migrations and pgTAP tests run on a real Supabase stack (they were previously checked on plain Postgres with stubs).
+
 ## Context
 The repo `jbarca/AI-calorie-tracker` contains only a README: *"AI app focused on providing the best AI camera-scanning tool for tracking calories."* Nothing exists yet, so this plan builds the MVP from scratch.
 
