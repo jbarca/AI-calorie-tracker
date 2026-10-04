@@ -9,3 +9,4 @@ app/android
 supabase/.temp
 supabase/.branches
 docs
+**/deno.lock

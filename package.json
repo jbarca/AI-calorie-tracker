@@ -11,6 +11,8 @@
     "lint": "eslint .",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
+    "test:functions": "deno test --config supabase/functions/analyze-meal/deno.json supabase/functions/analyze-meal",
+    "check:functions": "deno check --config supabase/functions/analyze-meal/deno.json supabase/functions/analyze-meal/*.ts && deno lint --config supabase/functions/analyze-meal/deno.json supabase/functions/analyze-meal",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
