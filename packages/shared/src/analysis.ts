@@ -1,0 +1,36 @@
+import { z } from 'zod';
+
+/**
+ * Single source of truth for the shape of an AI meal analysis.
+ * Used by the `analyze-meal` Edge Function (as the structured-output format)
+ * and by the app (to validate the function's response).
+ */
+
+export const Confidence = z.enum(['low', 'medium', 'high']);
+export type Confidence = z.infer<typeof Confidence>;
+
+const nonNegative = z.number().nonnegative();
+
+export const MealItem = z.object({
+  /** Food name, e.g. "grilled chicken breast". */
+  name: z.string().min(1),
+  /** Human-readable portion, e.g. "1 palm-sized fillet". */
+  portion_desc: z.string(),
+  estimated_grams: nonNegative,
+  kcal: nonNegative,
+  protein_g: nonNegative,
+  carbs_g: nonNegative,
+  fat_g: nonNegative,
+  confidence: Confidence,
+});
+export type MealItem = z.infer<typeof MealItem>;
+
+export const MealAnalysis = z.object({
+  /** False when the image does not show food; `items` should then be empty. */
+  is_food: z.boolean(),
+  items: z.array(MealItem),
+  total_kcal: nonNegative,
+  /** Assumptions the model made, e.g. "sauce hidden; assumed 1 tbsp oil". */
+  notes: z.string(),
+});
+export type MealAnalysis = z.infer<typeof MealAnalysis>;
