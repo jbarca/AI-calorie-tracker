@@ -45,6 +45,14 @@ export function friendlyAnalyzeError(status: number | null, code?: string | null
         message: 'The photo did not finish uploading. Try again.',
         retryable: true,
       };
+    case 409:
+      // analysis_in_progress: another request for this scan is still running.
+      return {
+        ...base,
+        title: 'Still analysing',
+        message: 'Still analysing this meal — please wait a moment.',
+        retryable: true,
+      };
     case 413:
       return {
         ...base,

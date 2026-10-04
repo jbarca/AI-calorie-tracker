@@ -18,23 +18,37 @@ type Op = [string, unknown[]];
 
 /**
  * A fake of the small part of supabase-js the handler uses. Each query resolves against
- * in-memory state; writes are recorded for assertions. `as('user')` / `as('admin')` return
- * views that tag every query with the client it went through.
+ * in-memory state; writes are recorded for assertions (and applied to the matching scan row).
+ * `as('user')` / `as('admin')` return views that tag every query with the client it went through.
+ *
+ * `rpc('claim_analysis')` mirrors the SQL function: not_found / complete / busy (status
+ * processing) / rate_limited (attempts >= p_limit) / claimed (records an attempt and marks the
+ * scan processing). The real function is tested with pgTAP in supabase/tests.
  */
 class FakeSupabase {
   user: { id: string } | null = { id: USER_ID };
   scan: Row | null = {
     id: SCAN_ID,
+    user_id: USER_ID,
     image_path: `${USER_ID}/${SCAN_ID}.jpg`,
     status: 'pending',
     raw_result: null,
   };
-  recentScanCount = 0;
+  /** Created by a text-entry insert. */
+  textScan: Row | null = null;
+  /** Analysis attempts this user made in the last hour (the rate-limit counter). */
+  attempts = 0;
+  /** Forces the claim_analysis result instead of simulating it. */
+  claimOverride: string | null = null;
+  rpcError: Error | null = null;
   photo: Uint8Array | null = JPEG;
+  photoThrows = false;
   updates: Row[] = [];
   inserts: Row[] = [];
-  countFilters: unknown[][] = [];
   downloads: string[] = [];
+  rpcs: { client: ClientKind; fn: string; args: Row }[] = [];
+  /** Order of side effects: 'claim', 'download', 'update:<status>'. */
+  events: string[] = [];
   /** Every scans query, with the client it went through and its builder calls. */
   queries: { client: ClientKind; ops: Op[] }[] = [];
 
@@ -51,6 +65,10 @@ class FakeSupabase {
     from: (_bucket: string) => ({
       download: (path: string) => {
         this.downloads.push(path);
+        this.events.push('download');
+        if (this.photoThrows) {
+          return Promise.reject(new TypeError('network exploded'));
+        }
         return Promise.resolve(
           this.photo
             ? { data: new Blob([this.photo as BlobPart]), error: null }
@@ -60,11 +78,39 @@ class FakeSupabase {
     }),
   };
 
+  findScan(id: unknown): Row | null {
+    return [this.scan, this.textScan].find((s) => s && s.id === id) ?? null;
+  }
+
+  rpc(client: ClientKind, fn: string, args: Row) {
+    this.rpcs.push({ client, fn, args });
+    this.events.push('claim');
+    if (this.rpcError) {
+      return Promise.resolve({ data: null, error: this.rpcError });
+    }
+    if (this.claimOverride) {
+      return Promise.resolve({ data: this.claimOverride, error: null });
+    }
+    const row = this.findScan(args.p_scan);
+    let result: string;
+    if (!row || row.user_id !== args.p_user) result = 'not_found';
+    else if (row.status === 'complete') result = 'complete';
+    else if (row.status === 'processing') result = 'busy';
+    else if (this.attempts >= (args.p_limit as number)) result = 'rate_limited';
+    else {
+      this.attempts++;
+      row.status = 'processing';
+      result = 'claimed';
+    }
+    return Promise.resolve({ data: result, error: null });
+  }
+
   as(client: ClientKind): SupabaseClient {
     return {
       auth: this.auth,
       storage: this.storage,
       from: (_table: string) => new FakeQuery(this, client),
+      rpc: (fn: string, args: Row) => this.rpc(client, fn, args),
     } as unknown as SupabaseClient;
   }
 
@@ -103,12 +149,6 @@ class FakeQuery {
   eq(...a: unknown[]) {
     return this.op('eq', a);
   }
-  neq(...a: unknown[]) {
-    return this.op('neq', a);
-  }
-  gte(...a: unknown[]) {
-    return this.op('gte', a);
-  }
   maybeSingle() {
     return Promise.resolve(this.op('maybeSingle', []).resolve());
   }
@@ -121,22 +161,27 @@ class FakeQuery {
   private resolve(): Row {
     this.db.queries.push({ client: this.client, ops: this.ops });
     const has = (name: string) => this.ops.find(([n]) => n === name);
+    const idFilter = this.ops.find(([n, a]) => n === 'eq' && a[0] === 'id')?.[1][1];
     const update = has('update');
     if (update) {
-      this.db.updates.push(update[1][0] as Row);
+      const values = update[1][0] as Row;
+      this.db.updates.push(values);
+      this.db.events.push(`update:${values.status}`);
+      const row = this.db.findScan(idFilter);
+      if (row) Object.assign(row, values);
       return { error: null };
     }
     const insert = has('insert');
     if (insert) {
       this.db.inserts.push(insert[1][0] as Row);
+      this.db.textScan = {
+        id: TEXT_SCAN_ID,
+        status: 'pending',
+        ...(insert[1][0] as Row),
+      };
       return { data: { id: TEXT_SCAN_ID }, error: null };
     }
-    const select = has('select');
-    if ((select?.[1][1] as { head?: boolean } | undefined)?.head) {
-      this.db.countFilters.push(...this.ops.filter(([n]) => n !== 'select'));
-      return { count: this.db.recentScanCount, error: null };
-    }
-    return { data: this.db.scan, error: null };
+    return { data: this.db.findScan(idFilter), error: null };
   }
 }
 
@@ -147,7 +192,6 @@ function setup(respond: ConstructorParameters<typeof FakeAnthropic>[0], db = new
     createUserClient: () => db.as('user'),
     createAdminClient: () => db.as('admin'),
     config: { rateLimitPerHour: 30, effort: 'medium' },
-    now: () => new Date('2026-10-04T12:00:00Z'),
   };
   return { handler: createHandler(deps), anthropic, db };
 }
@@ -232,7 +276,10 @@ Deno.test('scan success: downloads, calls Claude, saves complete + serving model
   const res = await handler(post({ scan_id: SCAN_ID, hint: 'with ketchup' }));
 
   assertEquals(res.status, 200);
-  assertEquals(await res.json(), { scan_id: SCAN_ID, analysis: VALID_ANALYSIS });
+  assertEquals(await res.json(), {
+    scan_id: SCAN_ID,
+    analysis: VALID_ANALYSIS,
+  });
   assertEquals(db.downloads, [`${USER_ID}/${SCAN_ID}.jpg`]);
 
   const content = anthropic.calls[0]!.messages[0]!.content;
@@ -269,7 +316,11 @@ Deno.test('fallback-served response records the fallback model', async () => {
 
 Deno.test('completed scan returns the stored analysis without calling Claude', async () => {
   const db = new FakeSupabase();
-  db.scan = { ...db.scan!, status: 'complete', raw_result: { analysis: VALID_ANALYSIS } };
+  db.scan = {
+    ...db.scan!,
+    status: 'complete',
+    raw_result: { analysis: VALID_ANALYSIS },
+  };
   const { handler, anthropic } = setup(ok, db);
   const res = await handler(post({ scan_id: SCAN_ID }));
   assertEquals(res.status, 200);
@@ -277,30 +328,188 @@ Deno.test('completed scan returns the stored analysis without calling Claude', a
   assertEquals(anthropic.calls.length, 0);
 });
 
-Deno.test('rate limit: N other scans in the last hour is 429, before any AI call', async () => {
+Deno.test(
+  'claim: called with the service role, scoped to the caller, before any download or AI call',
+  async () => {
+    const db = new FakeSupabase();
+    let statusAtClaude: unknown;
+    const { handler } = setup(() => {
+      statusAtClaude = db.scan!.status;
+      return ok();
+    }, db);
+    const res = await handler(post({ scan_id: SCAN_ID }));
+    assertEquals(res.status, 200);
+    assertEquals(db.rpcs, [
+      {
+        client: 'admin',
+        fn: 'claim_analysis',
+        args: { p_user: USER_ID, p_scan: SCAN_ID, p_limit: 30, p_stale: '6 minutes' },
+      },
+    ]);
+    assertEquals(db.events, ['claim', 'download', 'update:complete']);
+    assertEquals(statusAtClaude, 'processing');
+    assertEquals(db.attempts, 1);
+    assertEquals(db.scan!.status, 'complete');
+    await res.body?.cancel();
+  },
+);
+
+Deno.test('rate limit: rate_limited claim is 429, before any download or AI call', async () => {
   const db = new FakeSupabase();
-  db.recentScanCount = 30;
+  db.attempts = 30;
   const { handler, anthropic } = setup(ok, db);
   const res = await handler(post({ scan_id: SCAN_ID }));
   assertEquals(res.status, 429);
+  assertEquals(await res.json(), {
+    error: 'rate_limited',
+    message: 'Limit of 30 analyses per hour reached. Try again later.',
+  });
   assertEquals(anthropic.calls.length, 0);
   assertEquals(db.downloads.length, 0);
-  // Counts the caller's scans in the last hour only, excluding the scan being analysed.
-  assertEquals(db.countFilters, [
-    ['eq', ['user_id', USER_ID]],
-    ['gte', ['created_at', '2026-10-04T11:00:00.000Z']],
-    ['neq', ['id', SCAN_ID]],
-  ]);
-  await res.body?.cancel();
+  // The scan was not claimed, so it is left as it was.
+  assertEquals(db.updates, []);
+  assertEquals(db.scan!.status, 'pending');
 });
 
 Deno.test('rate limit: under the limit proceeds', async () => {
   const db = new FakeSupabase();
-  db.recentScanCount = 29;
+  db.attempts = 29;
   const { handler } = setup(ok, db);
   const res = await handler(post({ scan_id: SCAN_ID }));
   assertEquals(res.status, 200);
   await res.body?.cancel();
+});
+
+Deno.test(
+  'busy: a scan already being analysed is 409, with no AI call or status write',
+  async () => {
+    const db = new FakeSupabase();
+    db.scan = { ...db.scan!, status: 'processing' };
+    const { handler, anthropic } = setup(ok, db);
+    const res = await handler(post({ scan_id: SCAN_ID }));
+    assertEquals(res.status, 409);
+    assertEquals((await res.json()).error, 'analysis_in_progress');
+    assertEquals(anthropic.calls.length, 0);
+    assertEquals(db.downloads.length, 0);
+    // The other request owns the claim; this one must not overwrite its status.
+    assertEquals(db.updates, []);
+    assertEquals(db.scan!.status, 'processing');
+    assertEquals(db.attempts, 0);
+  },
+);
+
+Deno.test('busy: concurrent requests for one scan make a single AI call', async () => {
+  const db = new FakeSupabase();
+  let release!: () => void;
+  const gate = new Promise<void>((r) => (release = r));
+  const { handler, anthropic } = setup(async () => {
+    await gate;
+    return ok();
+  }, db);
+  const first = handler(post({ scan_id: SCAN_ID }));
+  // Let the first request reach Claude (and so hold the claim) before the duplicates arrive.
+  while (anthropic.calls.length === 0) {
+    await new Promise((r) => setTimeout(r, 0));
+  }
+  const dupes = await Promise.all([
+    handler(post({ scan_id: SCAN_ID })),
+    handler(post({ scan_id: SCAN_ID })),
+  ]);
+  release();
+  const res = await first;
+  assertEquals(res.status, 200);
+  assertEquals(
+    dupes.map((r) => r.status),
+    [409, 409],
+  );
+  assertEquals(anthropic.calls.length, 1);
+  assertEquals(db.attempts, 1);
+  await Promise.all([res, ...dupes].map((r) => r.body?.cancel()));
+});
+
+Deno.test('retry: a failed scan claims again, and the retry counts as an attempt', async () => {
+  const db = new FakeSupabase();
+  db.attempts = 28;
+  let calls = 0;
+  const { handler, anthropic } = setup(() => {
+    calls++;
+    if (calls === 1) throw new Anthropic.APIConnectionTimeoutError();
+    return ok();
+  }, db);
+
+  const first = await handler(post({ scan_id: SCAN_ID }));
+  assertEquals(first.status, 503);
+  assertEquals(db.scan!.status, 'failed');
+  assertEquals(db.attempts, 29);
+  await first.body?.cancel();
+
+  const retry = await handler(post({ scan_id: SCAN_ID }));
+  assertEquals(retry.status, 200);
+  assertEquals(db.attempts, 30);
+  assertEquals(db.rpcs.length, 2);
+  assertEquals(anthropic.calls.length, 2);
+  await retry.body?.cancel();
+
+  // The retries used up the hourly limit: the next new analysis is refused.
+  db.scan = { ...db.scan!, status: 'failed' };
+  const third = await handler(post({ scan_id: SCAN_ID }));
+  assertEquals(third.status, 429);
+  assertEquals(anthropic.calls.length, 2);
+  await third.body?.cancel();
+});
+
+Deno.test('claim: a scan completed by another request returns its stored analysis', async () => {
+  const db = new FakeSupabase();
+  // Pending when loaded, complete by the time we claim.
+  db.scan = { ...db.scan!, raw_result: { analysis: VALID_ANALYSIS } };
+  db.claimOverride = 'complete';
+  const { handler, anthropic } = setup(ok, db);
+  const res = await handler(post({ scan_id: SCAN_ID }));
+  assertEquals(res.status, 200);
+  assertEquals(await res.json(), {
+    scan_id: SCAN_ID,
+    analysis: VALID_ANALYSIS,
+  });
+  assertEquals(anthropic.calls.length, 0);
+  assertEquals(db.downloads.length, 0);
+  assertEquals(db.updates, []);
+  // Re-read with the service role, scoped to the caller.
+  assertEquals(db.queriesWith('maybeSingle').at(-1), {
+    client: 'admin',
+    filters: [
+      ['eq', ['id', SCAN_ID]],
+      ['eq', ['user_id', USER_ID]],
+    ],
+  });
+});
+
+Deno.test('claim: not_found is 404', async () => {
+  const db = new FakeSupabase();
+  db.claimOverride = 'not_found';
+  const { handler, anthropic } = setup(ok, db);
+  const res = await handler(post({ scan_id: SCAN_ID }));
+  assertEquals(res.status, 404);
+  assertEquals((await res.json()).error, 'scan_not_found');
+  assertEquals(anthropic.calls.length, 0);
+  assertEquals(db.downloads.length, 0);
+});
+
+Deno.test('claim: an rpc error is 500, with no AI call', async () => {
+  for (const [rpcError, override] of [
+    [new Error('db down'), null],
+    [null, 'something-unexpected'],
+  ] as const) {
+    const db = new FakeSupabase();
+    db.rpcError = rpcError;
+    db.claimOverride = override;
+    const { handler, anthropic } = setup(ok, db);
+    const res = await handler(post({ scan_id: SCAN_ID }));
+    assertEquals(res.status, 500);
+    assertEquals((await res.json()).error, 'internal');
+    assertEquals(anthropic.calls.length, 0);
+    assertEquals(db.downloads.length, 0);
+    assertEquals(db.updates, []);
+  }
 });
 
 Deno.test('image path outside the caller folder is 403', async () => {
@@ -321,6 +530,15 @@ Deno.test('HEIC photo is 415', async () => {
   const res = await handler(post({ scan_id: SCAN_ID }));
   assertEquals(res.status, 415);
   assertEquals(anthropic.calls.length, 0);
+  // The scan was claimed, so the failure is recorded rather than left 'processing'.
+  assertEquals(db.updates, [
+    {
+      status: 'failed',
+      raw_result: { error: 'unsupported_image_type' },
+      model: null,
+    },
+  ]);
+  assertEquals(db.scan!.status, 'failed');
   await res.body?.cancel();
 });
 
@@ -330,6 +548,45 @@ Deno.test('missing photo in storage is 404', async () => {
   const { handler } = setup(ok, db);
   const res = await handler(post({ scan_id: SCAN_ID }));
   assertEquals(res.status, 404);
+  assertEquals((await res.json()).error, 'image_not_found');
+  assertEquals(db.events, ['claim', 'download', 'update:failed']);
+  assertEquals(db.updates[0]!.raw_result, { error: 'image_not_found' });
+  assertEquals(db.scan!.status, 'failed');
+});
+
+Deno.test(
+  'unexpected exception after the claim is 500 and still writes a final status',
+  async () => {
+    const db = new FakeSupabase();
+    db.photoThrows = true;
+    const { handler, anthropic } = setup(ok, db);
+    const res = await handler(post({ scan_id: SCAN_ID }));
+    assertEquals(res.status, 500);
+    assertEquals(await res.json(), {
+      error: 'internal',
+      message: 'Unexpected error.',
+      scan_id: SCAN_ID,
+    });
+    assertEquals(anthropic.calls.length, 0);
+    assertEquals(db.updates, [
+      {
+        status: 'failed',
+        raw_result: { error: 'internal' },
+        model: null,
+      },
+    ]);
+    assertEquals(db.scan!.status, 'failed');
+  },
+);
+
+Deno.test('non-SDK error from the AI call is 500 and marks the scan failed', async () => {
+  const { handler, db } = setup(() => {
+    throw new TypeError('boom');
+  });
+  const res = await handler(post({ scan_id: SCAN_ID }));
+  assertEquals(res.status, 500);
+  assertEquals(db.updates.length, 1);
+  assertEquals(db.scan!.status, 'failed');
   await res.body?.cancel();
 });
 
@@ -390,6 +647,16 @@ Deno.test('text-only entry creates a scan row and analyses the text', async () =
     ['user'],
   );
   assertEquals(db.downloads.length, 0);
+  // The new row is claimed (with the service role) before the AI call.
+  assertEquals(db.rpcs, [
+    {
+      client: 'admin',
+      fn: 'claim_analysis',
+      args: { p_user: USER_ID, p_scan: TEXT_SCAN_ID, p_limit: 30, p_stale: '6 minutes' },
+    },
+  ]);
+  assertEquals(db.events, ['claim', 'update:complete']);
+  assertEquals(db.attempts, 1);
   const content = anthropic.calls[0]!.messages[0]!.content;
   assert(Array.isArray(content) && content.length === 1 && content[0]?.type === 'text');
   assert(content[0].text.includes('two boiled eggs'));
@@ -407,29 +674,19 @@ Deno.test('text-only entry creates a scan row and analyses the text', async () =
 
 Deno.test('rate limit: text entries are counted too', async () => {
   const db = new FakeSupabase();
-  db.recentScanCount = 30;
+  db.attempts = 30;
   const { handler, anthropic } = setup(ok, db);
   const res = await handler(post({ text: 'a banana' }));
   assertEquals(res.status, 429);
+  assertEquals((await res.json()).error, 'rate_limited');
   assertEquals(anthropic.calls.length, 0);
-  assertEquals(db.inserts.length, 0);
-  await res.body?.cancel();
-});
-
-Deno.test('rate limit is counted with the service role, scoped to the caller', async () => {
-  // Users can no longer delete scans, but the count must not depend on RLS either way.
-  const { handler, db } = setup(ok);
-  const res = await handler(post({ scan_id: SCAN_ID }));
-  assertEquals(res.status, 200);
-  const counts = db.queries.filter((q) =>
-    q.ops.some(([n, a]) => n === 'select' && (a[1] as { head?: boolean } | undefined)?.head),
-  );
-  assertEquals(
-    counts.map((q) => q.client),
-    ['admin'],
-  );
-  assert(counts[0]!.ops.some(([n, a]) => n === 'eq' && a[0] === 'user_id' && a[1] === USER_ID));
-  await res.body?.cancel();
+  // The row is inserted, then the claim is refused; it is closed off rather than left pending.
+  assertEquals(db.inserts.length, 1);
+  assertEquals(db.rpcs[0]!.args.p_scan, TEXT_SCAN_ID);
+  assertEquals(db.updates, [
+    { status: 'failed', raw_result: { error: 'rate_limited' }, model: null },
+  ]);
+  assertEquals(db.textScan!.status, 'failed');
 });
 
 Deno.test('scan is loaded through the user client (RLS proves ownership)', async () => {
