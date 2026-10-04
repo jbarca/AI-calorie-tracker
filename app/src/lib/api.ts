@@ -304,12 +304,42 @@ export async function updateKcalGoal(userId: string, goal: number): Promise<void
   if (error) throw error;
 }
 
+export class DeleteAccountError extends Error {
+  constructor(
+    message: string,
+    readonly status: number | null,
+    readonly code: string | null,
+  ) {
+    super(message);
+    this.name = 'DeleteAccountError';
+  }
+}
+
+const DeleteAccountResponse = z.object({ deleted: z.literal(true) });
+
+/** User-facing message for a failed `delete-account` call. */
+function deleteAccountMessage(status: number | null, code: string | null): string {
+  if (code === 'fetch_error' || code === 'relay_error') {
+    return 'Could not reach the server. Check your connection and try again.';
+  }
+  if (status === 401) return 'Your session has expired. Sign in again, then retry.';
+  return 'Your account was not deleted. Try again in a moment.';
+}
+
 /**
- * TODO(backend): the `delete-account` Edge Function does not exist yet. It should delete the
- * user's Storage objects and auth user (rows cascade). Until then this call fails and the
- * Settings screen shows a "coming soon" message.
+ * Permanently deletes the signed-in user via the `delete-account` Edge Function: their photos,
+ * then the auth user (profile, scans and meals cascade). Throws `DeleteAccountError` on failure;
+ * the caller signs out on success.
  */
 export async function deleteAccount(): Promise<void> {
-  const { error } = await supabase.functions.invoke('delete-account', { body: {} });
-  if (error) throw error;
+  const { data, error } = await supabase.functions.invoke<unknown>('delete-account', {
+    body: { confirm: 'DELETE' },
+  });
+  if (error) {
+    const { status, code } = await describeInvokeError(error);
+    throw new DeleteAccountError(deleteAccountMessage(status, code), status, code);
+  }
+  if (!DeleteAccountResponse.safeParse(data).success) {
+    throw new DeleteAccountError(deleteAccountMessage(502, 'invalid_response'), 502, null);
+  }
 }

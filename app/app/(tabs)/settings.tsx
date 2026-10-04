@@ -1,12 +1,15 @@
 import { parseKcalGoal } from '@calorie/shared';
+import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { Button } from '@/components/Button';
+import { DeleteAccountDialog } from '@/components/DeleteAccountDialog';
 import { Text, useColors } from '@/components/Themed';
 import { useProfile, useUpdateKcalGoal } from '@/hooks/useProfile';
-import { deleteAccount } from '@/lib/api';
+import { deleteAccount, DeleteAccountError } from '@/lib/api';
 import { signOut } from '@/lib/auth';
+import { supabase } from '@/lib/supabase';
 import { useSession } from '@/providers/SessionProvider';
 
 export default function SettingsScreen() {
@@ -31,9 +34,60 @@ export default function SettingsScreen() {
             void signOut().catch(() => Alert.alert('Could not sign out', 'Try again.'))
           }
         />
-        <Button title="Delete account" variant="danger" onPress={confirmDeleteAccount} />
+        <DeleteAccountSection />
       </View>
     </ScrollView>
+  );
+}
+
+function DeleteAccountSection() {
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const confirm = async () => {
+    setPending(true);
+    setError(null);
+    try {
+      await deleteAccount();
+    } catch (err) {
+      setPending(false);
+      setError(
+        err instanceof DeleteAccountError
+          ? err.message
+          : 'Your account was not deleted. Try again.',
+      );
+      return;
+    }
+    // The account is gone. Sign out through the usual path (the auth guard then leaves the
+    // app); if the server call fails because the user no longer exists, drop the local session.
+    try {
+      await signOut();
+    } catch {
+      await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
+    }
+    queryClient.clear();
+  };
+
+  return (
+    <>
+      <Button
+        title="Delete account"
+        variant="danger"
+        onPress={() => {
+          setError(null);
+          setOpen(true);
+        }}
+      />
+      <DeleteAccountDialog
+        visible={open}
+        pending={pending}
+        error={error}
+        onConfirm={() => void confirm()}
+        onCancel={() => setOpen(false)}
+      />
+    </>
   );
 }
 
@@ -81,31 +135,6 @@ function GoalSection() {
       ) : null}
       <Button title="Save goal" onPress={save} disabled={!dirty} loading={update.isPending} />
     </View>
-  );
-}
-
-function confirmDeleteAccount() {
-  Alert.alert(
-    'Delete account?',
-    'This permanently deletes your account, meals and photos. This cannot be undone.',
-    [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: () => {
-          // TODO(backend): `delete-account` Edge Function not built yet; see lib/api.ts.
-          deleteAccount()
-            .then(() => signOut())
-            .catch(() =>
-              Alert.alert(
-                'Coming soon',
-                'Account deletion is not available yet. Contact support to delete your account.',
-              ),
-            );
-        },
-      },
-    ],
   );
 }
 

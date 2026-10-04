@@ -393,6 +393,13 @@ verify_jwt = true
 import_map = "./functions/analyze-meal/deno.json"
 entrypoint = "./functions/analyze-meal/index.ts"
 
+# Deletes the caller's photos and auth user (rows cascade). Requires { "confirm": "DELETE" }.
+[functions.delete-account]
+enabled = true
+verify_jwt = true
+import_map = "./functions/delete-account/deno.json"
+entrypoint = "./functions/delete-account/index.ts"
+
 [analytics]
 enabled = true
 port = 54327
