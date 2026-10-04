@@ -1,0 +1,12 @@
+node_modules
+.expo
+dist
+web-build
+coverage
+package-lock.json
+app/ios
+app/android
+supabase/.temp
+supabase/.branches
+docs
+**/deno.lock

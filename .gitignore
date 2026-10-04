@@ -1,0 +1,45 @@
+# dependencies
+node_modules/
+
+# Expo / build output
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+app/ios/
+app/android/
+.metro-health-check*
+.kotlin/
+
+# test / coverage
+coverage/
+
+# env files (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# signing material
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+*.orig.*
+
+# supabase local state
+supabase/.branches/
+supabase/.temp/
+
+# logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.log
+
+# typescript
+*.tsbuildinfo
+
+# OS / editor
+.DS_Store

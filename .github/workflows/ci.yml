@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+# Cancel superseded runs of the same branch / PR.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  node:
+    name: Lint, typecheck, unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run format:check
+      - run: npm run check:shared-sync
+
+  functions:
+    name: Edge Functions (Deno)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      # The scripts only use Node built-ins, so no npm ci is needed here.
+      - run: npm run test:functions
+      - run: npm run check:functions
+
+  database:
+    name: Database (migrations, pgTAP, lint)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: supabase/setup-cli@v3
+        with:
+          # Keep in step with the `supabase` devDependency in package.json.
+          version: 2.119.0
+      # Only Postgres, auth, storage and the API gateway are needed for migrations and pgTAP.
+      - name: Start Supabase
+        run: >-
+          supabase start
+          -x studio,imgproxy,edge-runtime,logflare,vector,realtime,mailpit,supavisor
+      - run: supabase db reset
+      - run: supabase test db
+      - run: supabase db lint --level warning --fail-on error
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup
+
+  expo:
+    name: Expo bundle (android export)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Export android bundle
+        working-directory: app
+        env:
+          # Dummy values: the bundle only needs them to exist.
+          EXPO_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ci-dummy-anon-key
+        run: npx expo export --platform android --output-dir /tmp/expo-export

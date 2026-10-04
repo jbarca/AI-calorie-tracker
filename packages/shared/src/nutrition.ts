@@ -1,0 +1,268 @@
+import type { Confidence, MealItem } from './analysis.ts';
+
+/**
+ * Pure nutrition helpers used by the review editor and the Today/History screens:
+ * per-gram derivation, proportional rescaling, totals and the default meal type.
+ */
+
+export const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack'] as const;
+export type MealType = (typeof MEAL_TYPES)[number];
+
+export interface Macros {
+  kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+}
+
+export const ZERO_MACROS: Macros = { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 };
+
+/** Rounds kcal to whole numbers and macros to 0.1 g (what the UI shows and what is saved). */
+export function roundMacros(m: Macros): Macros {
+  return {
+    kcal: Math.round(m.kcal),
+    protein_g: round1(m.protein_g),
+    carbs_g: round1(m.carbs_g),
+    fat_g: round1(m.fat_g),
+  };
+}
+
+function round1(n: number): number {
+  return Math.round(n * 10) / 10;
+}
+
+/**
+ * Nutrition per gram, derived from an item's grams and macros. Returns null when grams is not
+ * positive (nothing to scale from), so the caller keeps the absolute values instead.
+ */
+export function perGramFrom(item: Macros & { grams: number }): Macros | null {
+  if (!(item.grams > 0)) return null;
+  return {
+    kcal: item.kcal / item.grams,
+    protein_g: item.protein_g / item.grams,
+    carbs_g: item.carbs_g / item.grams,
+    fat_g: item.fat_g / item.grams,
+  };
+}
+
+/** Macros for `grams` of a food with the given per-gram values, rounded for display. */
+export function scaleToGrams(perGram: Macros, grams: number): Macros {
+  const g = Math.max(0, grams);
+  return roundMacros({
+    kcal: perGram.kcal * g,
+    protein_g: perGram.protein_g * g,
+    carbs_g: perGram.carbs_g * g,
+    fat_g: perGram.fat_g * g,
+  });
+}
+
+/** Sums macros across items (null macros count as 0), rounded. */
+export function sumMacros(items: ReadonlyArray<Partial<Macros>>): Macros {
+  const total = items.reduce<Macros>(
+    (acc, i) => ({
+      kcal: acc.kcal + (i.kcal ?? 0),
+      protein_g: acc.protein_g + (i.protein_g ?? 0),
+      carbs_g: acc.carbs_g + (i.carbs_g ?? 0),
+      fat_g: acc.fat_g + (i.fat_g ?? 0),
+    }),
+    { ...ZERO_MACROS },
+  );
+  return roundMacros(total);
+}
+
+/**
+ * Default meal type from the local time of day:
+ * 04:00-10:59 breakfast, 11:00-14:59 lunch, 17:00-21:59 dinner, anything else a snack.
+ */
+export function defaultMealType(date: Date): MealType {
+  const h = date.getHours();
+  if (h >= 4 && h < 11) return 'breakfast';
+  if (h >= 11 && h < 15) return 'lunch';
+  if (h >= 17 && h < 22) return 'dinner';
+  return 'snack';
+}
+
+// ---------------------------------------------------------------------------------------------
+// Review-editor draft: one editable row per food item.
+// ---------------------------------------------------------------------------------------------
+
+export interface DraftItem extends Macros {
+  /** Stable key for the list (the meal_items id when editing a saved meal). */
+  key: string;
+  /** meal_items.id when the row already exists in the database. */
+  dbId: string | null;
+  name: string;
+  portion_desc: string;
+  grams: number;
+  confidence: Confidence | null;
+  /**
+   * Per-gram values captured once, from the AI's estimate (or the saved/entered values), so
+   * repeated stepping never accumulates rounding drift.
+   */
+  perGram: Macros | null;
+  /** What the row looked like when the editor opened; null for rows the user added. */
+  original: { name: string; grams: number } | null;
+  /** Already marked as user-edited in the database. */
+  wasEdited: boolean;
+}
+
+export function draftFromAnalysisItem(item: MealItem, key: string): DraftItem {
+  const grams = item.estimated_grams;
+  const macros = roundMacros(item);
+  return {
+    key,
+    dbId: null,
+    name: item.name,
+    portion_desc: item.portion_desc,
+    grams,
+    ...macros,
+    confidence: item.confidence,
+    perGram: perGramFrom({ ...item, grams }),
+    original: { name: item.name, grams },
+    wasEdited: false,
+  };
+}
+
+/** A row saved in `meal_items`, with nullable columns as stored. */
+export interface SavedItem {
+  id: string;
+  name: string;
+  portion_desc: string | null;
+  grams: number | null;
+  kcal: number;
+  protein_g: number | null;
+  carbs_g: number | null;
+  fat_g: number | null;
+  confidence: Confidence | null;
+  user_edited: boolean;
+}
+
+export function draftFromSavedItem(item: SavedItem): DraftItem {
+  const macros: Macros = {
+    kcal: item.kcal,
+    protein_g: item.protein_g ?? 0,
+    carbs_g: item.carbs_g ?? 0,
+    fat_g: item.fat_g ?? 0,
+  };
+  const grams = item.grams ?? 0;
+  return {
+    key: item.id,
+    dbId: item.id,
+    name: item.name,
+    portion_desc: item.portion_desc ?? '',
+    grams,
+    ...macros,
+    confidence: item.confidence,
+    perGram: perGramFrom({ ...macros, grams }),
+    original: { name: item.name, grams },
+    wasEdited: item.user_edited,
+  };
+}
+
+export interface NewItemInput extends Macros {
+  name: string;
+  grams: number;
+}
+
+/** A row the user added by hand ("Add item"). */
+export function draftFromManualInput(input: NewItemInput, key: string): DraftItem {
+  const macros = roundMacros(input);
+  return {
+    key,
+    dbId: null,
+    name: input.name.trim(),
+    portion_desc: '',
+    grams: Math.max(0, input.grams),
+    ...macros,
+    confidence: null,
+    perGram: perGramFrom({ ...input, grams: input.grams }),
+    original: null,
+    wasEdited: true,
+  };
+}
+
+/** Sets the grams and rescales kcal and macros proportionally from the per-gram values. */
+export function withGrams(item: DraftItem, grams: number): DraftItem {
+  const g = Math.max(0, Math.round(grams));
+  if (!item.perGram) {
+    // No per-gram basis (e.g. a 0 g item): keep the absolute values, only the grams change.
+    return { ...item, grams: g };
+  }
+  return { ...item, grams: g, ...scaleToGrams(item.perGram, g) };
+}
+
+/** True when the row differs from what the AI (or the saved meal) produced. */
+export function isUserEdited(item: DraftItem): boolean {
+  if (item.wasEdited || !item.original) return true;
+  return (
+    item.name.trim() !== item.original.name.trim() ||
+    Math.round(item.grams) !== Math.round(item.original.grams)
+  );
+}
+
+export type DraftAction =
+  | { type: 'reset'; items: DraftItem[] }
+  | { type: 'rename'; key: string; name: string }
+  | { type: 'setGrams'; key: string; grams: number }
+  | { type: 'remove'; key: string }
+  | { type: 'add'; item: DraftItem };
+
+export function draftReducer(items: DraftItem[], action: DraftAction): DraftItem[] {
+  switch (action.type) {
+    case 'reset':
+      return action.items;
+    case 'rename':
+      return items.map((i) => (i.key === action.key ? { ...i, name: action.name } : i));
+    case 'setGrams':
+      return items.map((i) => (i.key === action.key ? withGrams(i, action.grams) : i));
+    case 'remove':
+      return items.filter((i) => i.key !== action.key);
+    case 'add':
+      return [...items, action.item];
+  }
+}
+
+/** A row ready to insert/upsert into `meal_items` (without meal_id). */
+export interface MealItemRow extends Macros {
+  id?: string;
+  name: string;
+  portion_desc: string | null;
+  grams: number;
+  confidence: Confidence | null;
+  user_edited: boolean;
+}
+
+export function toMealItemRow(item: DraftItem): MealItemRow {
+  return {
+    ...(item.dbId ? { id: item.dbId } : {}),
+    name: item.name.trim(),
+    portion_desc: item.portion_desc.trim() || null,
+    grams: item.grams,
+    ...roundMacros(item),
+    confidence: item.confidence,
+    user_edited: isUserEdited(item),
+  };
+}
+
+/** Returns a user-facing problem with the draft, or null when it can be saved. */
+export function validateDraft(items: readonly DraftItem[]): string | null {
+  if (items.length === 0) return 'Add at least one item.';
+  if (items.some((i) => i.name.trim() === '')) return 'Every item needs a name.';
+  return null;
+}
+
+export const KCAL_GOAL_MIN = 1;
+export const KCAL_GOAL_MAX = 20000;
+
+/** Parses a daily kcal goal typed by the user (whole number, 1-20000, as the DB requires). */
+export function parseKcalGoal(
+  input: string,
+): { ok: true; value: number } | { ok: false; error: string } {
+  const trimmed = input.trim();
+  if (!/^\d+$/.test(trimmed)) return { ok: false, error: 'Enter a whole number of calories.' };
+  const value = Number(trimmed);
+  if (value < KCAL_GOAL_MIN || value > KCAL_GOAL_MAX) {
+    return { ok: false, error: `Goal must be between ${KCAL_GOAL_MIN} and ${KCAL_GOAL_MAX} kcal.` };
+  }
+  return { ok: true, value };
+}

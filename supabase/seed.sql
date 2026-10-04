@@ -1,0 +1,6 @@
+-- Seed data for local development (`supabase db reset` runs this after migrations).
+--
+-- Intentionally empty. Create a test user by signing up through the app (or
+-- Supabase Studio > Authentication); the on_auth_user_created trigger creates
+-- the matching profiles row, and the `meal-photos` bucket is created by the
+-- init migration.

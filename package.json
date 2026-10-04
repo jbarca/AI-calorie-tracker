@@ -1,0 +1,35 @@
+{
+  "name": "ai-calorie-tracker",
+  "private": true,
+  "version": "0.1.0",
+  "description": "AI camera-scanning calorie tracker (Expo + Supabase + Claude vision).",
+  "workspaces": [
+    "app",
+    "packages/*"
+  ],
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:functions": "node scripts/functions.mjs test",
+    "check:functions": "node scripts/functions.mjs check",
+    "sync:shared": "node scripts/sync-shared.mjs",
+    "check:shared-sync": "node scripts/sync-shared.mjs --check",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.9",
+    "supabase": "^2.119.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.71.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

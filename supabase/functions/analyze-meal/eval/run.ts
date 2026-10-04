@@ -1,0 +1,182 @@
+/**
+ * Accuracy eval for analyze-meal: runs the exact Claude request the function sends
+ * (`analyzeWithClaude`) over labelled photos and reports MAPE, bias, the ±20% hit rate and
+ * non-food accuracy. It calls the real Anthropic API and costs money, so it refuses to run
+ * without `--yes`. Never run in CI; `deno test` does not execute this file. See README.md.
+ *
+ *   deno task --config supabase/functions/analyze-meal/deno.json eval [--limit N] --yes
+ */
+import Anthropic from '@anthropic-ai/sdk';
+import { encodeBase64 } from '@std/encoding/base64';
+import { z } from 'zod';
+import { analyzeWithClaude, EFFORT_LEVELS, MODEL } from '../claude.ts';
+import { detectImageType, MAX_IMAGE_BYTES } from '../image.ts';
+import { type EvalRow, formatReport, summarize, totalTokens } from './metrics.ts';
+
+const EVAL_DIR = new URL('./', import.meta.url);
+const DATASET_URL = new URL('dataset.json', EVAL_DIR);
+const PHOTOS_URL = new URL('photos/', EVAL_DIR);
+const RESULTS_URL = new URL('results/', EVAL_DIR);
+
+const Dataset = z.array(
+  z.object({
+    /** File name under eval/photos/. */
+    image: z.string().min(1),
+    /** Ground-truth kcal; use 0 for non-food photos. */
+    true_kcal: z.number().nonnegative(),
+    /** Defaults to true. Set false for photos that do not show food. */
+    is_food: z.boolean().optional(),
+    notes: z.string().optional(),
+  }),
+);
+type Entry = z.infer<typeof Dataset>[number];
+
+function parseArgs(args: string[]): { yes: boolean; limit: number | null } {
+  let yes = false;
+  let limit: number | null = null;
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i]!;
+    if (arg === '--yes') yes = true;
+    else if (arg === '--limit' || arg.startsWith('--limit=')) {
+      const raw = arg === '--limit' ? args[++i] : arg.slice('--limit='.length);
+      const n = Number(raw);
+      if (!Number.isInteger(n) || n <= 0) fail(`--limit needs a positive integer, got ${raw}`);
+      limit = n;
+    } else fail(`unknown argument: ${arg}`);
+  }
+  return { yes, limit };
+}
+
+function fail(message: string): never {
+  console.error(`eval: ${message}`);
+  Deno.exit(1);
+}
+
+async function loadDataset(): Promise<Entry[]> {
+  let raw: string;
+  try {
+    raw = await Deno.readTextFile(DATASET_URL);
+  } catch (err) {
+    if (err instanceof Deno.errors.NotFound) {
+      fail('eval/dataset.json not found. Copy dataset.example.json and label your photos.');
+    }
+    throw err;
+  }
+  const parsed = Dataset.safeParse(JSON.parse(raw));
+  if (!parsed.success) fail(`eval/dataset.json is invalid:\n${parsed.error.message}`);
+  for (const entry of parsed.data) {
+    if ((entry.is_food ?? true) && entry.true_kcal <= 0) {
+      fail(`${entry.image}: food photos need true_kcal > 0 (set is_food: false for non-food)`);
+    }
+  }
+  return parsed.data;
+}
+
+async function evaluate(client: Anthropic, entry: Entry, effort: string): Promise<EvalRow> {
+  const expected_is_food = entry.is_food ?? true;
+  const base = {
+    image: entry.image,
+    true_kcal: entry.true_kcal,
+    expected_is_food,
+    predicted_kcal: null,
+    predicted_is_food: null,
+    tokens: 0,
+    model: null,
+  };
+  const started = Date.now();
+  try {
+    const bytes = await Deno.readFile(new URL(entry.image, PHOTOS_URL));
+    if (bytes.length > MAX_IMAGE_BYTES) throw new Error(`image is over ${MAX_IMAGE_BYTES} bytes`);
+    const mediaType = detectImageType(bytes, entry.image);
+    if (mediaType === null || mediaType === 'image/heic') {
+      throw new Error(`unsupported image type (${mediaType ?? 'unknown'}); use JPEG, PNG or WebP`);
+    }
+    const out = await analyzeWithClaude(
+      client,
+      { kind: 'image', mediaType, base64: encodeBase64(bytes) },
+      { effort: effort as (typeof EFFORT_LEVELS)[number] },
+    );
+    const common = {
+      ...base,
+      outcome: out.kind,
+      tokens: totalTokens(out.message.usage),
+      latency_ms: Date.now() - started,
+      model: out.model,
+    };
+    if (out.kind === 'ok') {
+      return {
+        ...common,
+        predicted_kcal: out.analysis.total_kcal,
+        predicted_is_food: out.analysis.is_food,
+      };
+    }
+    return { ...common, error: out.kind === 'invalid_output' ? out.error : undefined };
+  } catch (err) {
+    return {
+      ...base,
+      outcome: 'error',
+      latency_ms: Date.now() - started,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
+async function main() {
+  const { yes, limit } = parseArgs(Deno.args);
+  const effort = Deno.env.get('ANALYZE_EFFORT') ?? 'medium';
+  if (!(EFFORT_LEVELS as readonly string[]).includes(effort)) {
+    fail(`ANALYZE_EFFORT must be one of ${EFFORT_LEVELS.join(', ')}, got ${effort}`);
+  }
+
+  const dataset = await loadDataset();
+  const entries = limit === null ? dataset : dataset.slice(0, limit);
+  if (entries.length === 0) fail('eval/dataset.json has no entries.');
+
+  // Fail on missing photos before anything is spent.
+  const missing: string[] = [];
+  for (const entry of entries) {
+    try {
+      await Deno.stat(new URL(entry.image, PHOTOS_URL));
+    } catch {
+      missing.push(entry.image);
+    }
+  }
+  if (missing.length > 0) fail(`missing photos in eval/photos/: ${missing.join(', ')}`);
+
+  console.log(
+    `${entries.length} image(s) from eval/dataset.json -> ${MODEL}, effort ${effort}.\n` +
+      `This makes ${entries.length} real Anthropic API call(s) and costs money.`,
+  );
+  if (!yes) fail('refusing to call the API without --yes.');
+
+  const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
+  if (!apiKey) fail('ANTHROPIC_API_KEY is not set.');
+  const client = new Anthropic({ apiKey, maxRetries: 1, timeout: 60_000 });
+
+  const rows: EvalRow[] = [];
+  for (const [i, entry] of entries.entries()) {
+    const row = await evaluate(client, entry, effort);
+    console.log(
+      `[${i + 1}/${entries.length}] ${row.image}: ${row.outcome}` +
+        (row.predicted_kcal === null ? '' : ` ${Math.round(row.predicted_kcal)} kcal`) +
+        (row.error ? ` (${row.error})` : ''),
+    );
+    rows.push(row);
+  }
+
+  const summary = summarize(rows);
+  console.log(`\n${formatReport(rows, summary)}`);
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  await Deno.mkdir(RESULTS_URL, { recursive: true });
+  const outUrl = new URL(`${timestamp}.json`, RESULTS_URL);
+  await Deno.writeTextFile(
+    outUrl,
+    JSON.stringify({ timestamp, model: MODEL, effort, summary, rows }, null, 2) + '\n',
+  );
+  console.log(`\nWrote ${outUrl.pathname}`);
+}
+
+if (import.meta.main) {
+  await main();
+}
