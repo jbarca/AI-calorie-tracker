@@ -1,5 +1,8 @@
--- Extra coverage for the init migration's UPDATE / DELETE policies and bucket settings, plus
+-- Extra coverage for the init migration's UPDATE policies and bucket settings, plus
 -- scans privileges for anon. Run with: supabase test db
+--
+-- NOT covered here: storage DELETE policies. Supabase's storage.protect_delete() trigger rejects
+-- direct DELETEs on storage.objects (only the Storage API may delete), so they cannot be tested in SQL.
 --
 -- NOT covered here: the per-user advisory lock inside claim_analysis(). Serialisation between
 -- concurrent transactions cannot be exercised inside one pgTAP transaction, so it is verified
@@ -9,7 +12,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(11);
+select plan(9);
 
 insert into auth.users (id, email) values
   ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a@example.test'),
@@ -58,11 +61,6 @@ select is_empty(
     where name = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/theirs.jpg' returning id$$,
   'A cannot overwrite B''s photo'
 );
-select is_empty(
-  $$delete from storage.objects
-    where name = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/theirs.jpg' returning id$$,
-  'A cannot delete B''s photo'
-);
 select throws_ok(
   $$update storage.objects set name = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/stolen.jpg'
     where name = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/own.jpg'$$,
@@ -73,11 +71,6 @@ select isnt_empty(
   $$update storage.objects set name = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/renamed.jpg'
     where name = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/own.jpg' returning id$$,
   'A can overwrite their own photo (what upsert: true relies on)'
-);
-select isnt_empty(
-  $$delete from storage.objects
-    where name = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/renamed.jpg' returning id$$,
-  'A can delete their own photo'
 );
 select throws_ok(
   $$truncate public.scans$$,
