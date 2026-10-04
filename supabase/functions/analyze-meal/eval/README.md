@@ -80,11 +80,8 @@ The same summary plus every row (with the serving model) is written to
 
 ## Using the results
 
-The first full run on `medium` is the baseline. Record it here:
-
-| Date | Effort | Photos | MAPE | Bias | Within ±20% | Non-food |
-| ---- | ------ | ------ | ---- | ---- | ----------- | -------- |
-| —    | —      | —      | —    | —    | —           | —        |
+Follow the repeatable procedure in [`docs/ACCURACY_EVAL.md`](../../../../docs/ACCURACY_EVAL.md)
+and record every full run in its run log. The first full run on `medium` is the baseline.
 
 Later changes to `prompt.ts`, `ANALYZE_EFFORT` or the model should be kept only if they hold or
 improve MAPE without a meaningful cost or latency regression.
