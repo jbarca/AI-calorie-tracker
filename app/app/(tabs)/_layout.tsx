@@ -1,5 +1,5 @@
-import { Tabs } from 'expo-router';
-import type { ColorValue } from 'react-native';
+import { Link, Tabs } from 'expo-router';
+import { Pressable, StyleSheet, Text, type ColorValue } from 'react-native';
 import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
@@ -27,6 +27,20 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Today',
+          headerRight: () => (
+            <Link href="/add-text" asChild>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Add food by text"
+                hitSlop={8}
+                style={styles.headerButton}
+              >
+                <Text style={[styles.headerButtonText, { color: Colors[colorScheme].accent }]}>
+                  Add by text
+                </Text>
+              </Pressable>
+            </Link>
+          ),
           tabBarIcon: ({ color }) => (
             <TabIcon
               name={{
@@ -78,3 +92,8 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  headerButton: { paddingHorizontal: 16 },
+  headerButtonText: { fontSize: 16, fontWeight: '600' },
+});

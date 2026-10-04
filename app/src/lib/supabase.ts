@@ -20,6 +20,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
+    // PKCE: magic links and OAuth redirects come back with a one-time `?code=` that only this
+    // device (which holds the code verifier) can exchange. See src/lib/auth.ts.
+    flowType: 'pkce',
     lock: processLock,
   },
 });

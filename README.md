@@ -59,7 +59,7 @@ cd app && npx expo start
 | ------------------------- | ------------------------------------------------------------------ |
 | `npm run lint`            | ESLint (flat config) across the repo                               |
 | `npm run typecheck`       | `tsc --noEmit` in every workspace                                  |
-| `npm test`                | Tests in every workspace (Vitest in shared)                        |
+| `npm test`                | Tests in every workspace (Vitest in shared, Jest + RNTL in app)    |
 | `npm run test:functions`  | `deno test` for the Edge Function (fake Claude client, no API use) |
 | `npm run check:functions` | `deno check` + `deno lint` for the Edge Function                   |
 | `npm run format`          | Prettier write (`format:check` to verify)                          |
@@ -68,6 +68,39 @@ The `*:functions` scripts need [Deno](https://docs.deno.com/runtime/getting_star
 2.x on your PATH (`npm i -g deno` works).
 
 Add Expo-native dependencies from `app/` with `npx expo install <pkg>` so versions match the SDK.
+
+## Mobile app (`app/`)
+
+Expo Router screens live in `app/app`, everything else in `app/src` (imported as `@/...`).
+
+| Route                  | What it does                                                                       |
+| ---------------------- | ---------------------------------------------------------------------------------- |
+| `(auth)/sign-in`       | Email magic link + 6-digit code, Sign in with Apple (iOS), Google (web OAuth)      |
+| `(tabs)/index` (Today) | Calorie ring vs goal, macro bar, today's meals (tap to edit, long-press to delete) |
+| `(tabs)/scan`          | Camera (flash, gallery fallback, optional hint) → analyze → review                 |
+| `(tabs)/history`       | Last 30 days grouped by local day, 7-day kcal bar chart                            |
+| `(tabs)/settings`      | Daily kcal goal (1-20000), sign out, delete account (backend pending)              |
+| `review/[scanId]`      | Edit the AI result and save it; `?mealId=` edits a saved meal                      |
+| `add-text`             | Manual entry: describe a meal, analyze-meal estimates it without a photo           |
+
+- **Auth guard:** the root `_layout.tsx` uses `Stack.Protected` on the Supabase session. The client
+  uses the PKCE flow; magic links and OAuth return to `aicalorietracker://sign-in?code=...`
+  (`exp://.../--/sign-in` in Expo Go), which is exchanged for a session. Both are already in
+  `additional_redirect_urls` in `supabase/config.toml`.
+- **Scan flow** (`src/lib/api.ts` → `analyzeMeal`): resize to 1024 px / JPEG 0.7
+  (`src/lib/image.ts`) → insert a `scans` row → upload to `meal-photos/{user_id}/{scan_id}.jpg` →
+  set `image_path` → `functions.invoke('analyze-meal')`. A retry reuses the same scan. Function
+  errors (401/404/413/415/422/429/502/503) map to friendly messages in `@calorie/shared`.
+- **Days are local:** Today and History query `meals.eaten_at` with the device's local-day
+  boundaries rather than the UTC `daily_totals` view.
+- **Pure logic** (rescaling, totals, meal-type default, draft editing, dates, error mapping) is in
+  `packages/shared/src` with Vitest tests; component tests use Jest (`jest-expo`) and React Native
+  Testing Library in `app/src/__tests__`.
+
+The code-entry path needs the magic-link email template to include `{{ .Token }}` (Supabase's
+default template only has the link). Sign in with Apple needs a development build (not Expo Go), an `ios.bundleIdentifier`, and the
+Apple provider enabled in Supabase with that bundle id as a client id. Google needs the Google
+provider enabled in Supabase (`[auth.external.google]`).
 
 ## Edge Function: `analyze-meal`
 

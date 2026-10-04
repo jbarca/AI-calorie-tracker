@@ -43,3 +43,8 @@ export function View(props: ViewProps) {
 
   return <DefaultView style={[{ backgroundColor }, style]} {...otherProps} />;
 }
+
+/** The full palette for the current colour scheme. */
+export function useColors() {
+  return Colors[useColorScheme()];
+}

@@ -8,7 +8,8 @@
     "scheme": "aicalorietracker",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "usesAppleSignIn": true
     },
     "android": {
       "adaptiveIcon": {
@@ -45,7 +46,8 @@
         {
           "photosPermission": "Allow $(PRODUCT_NAME) to pick meal photos from your library."
         }
-      ]
+      ],
+      "expo-apple-authentication"
     ],
     "experiments": {
       "typedRoutes": true
