@@ -13,10 +13,13 @@ const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0
 const HEIC = new Uint8Array([0, 0, 0, 0x18, ...new TextEncoder().encode('ftypheic'), 0, 0, 0, 0]);
 
 type Row = Record<string, unknown>;
+type ClientKind = 'user' | 'admin';
+type Op = [string, unknown[]];
 
 /**
  * A fake of the small part of supabase-js the handler uses. Each query resolves against
- * in-memory state; writes are recorded for assertions.
+ * in-memory state; writes are recorded for assertions. `as('user')` / `as('admin')` return
+ * views that tag every query with the client it went through.
  */
 class FakeSupabase {
   user: { id: string } | null = { id: USER_ID };
@@ -32,6 +35,8 @@ class FakeSupabase {
   inserts: Row[] = [];
   countFilters: unknown[][] = [];
   downloads: string[] = [];
+  /** Every scans query, with the client it went through and its builder calls. */
+  queries: { client: ClientKind; ops: Op[] }[] = [];
 
   auth = {
     getUser: (_token: string) =>
@@ -55,14 +60,33 @@ class FakeSupabase {
     }),
   };
 
-  from(_table: string) {
-    return new FakeQuery(this);
+  as(client: ClientKind): SupabaseClient {
+    return {
+      auth: this.auth,
+      storage: this.storage,
+      from: (_table: string) => new FakeQuery(this, client),
+    } as unknown as SupabaseClient;
+  }
+
+  /** Queries that used `op`, as `{ client, filters }` (filters = everything but select/insert/update). */
+  queriesWith(op: string) {
+    return this.queries
+      .filter((q) => q.ops.some(([n]) => n === op))
+      .map((q) => ({
+        client: q.client,
+        filters: q.ops.filter(
+          ([n]) => !['select', 'insert', 'update', 'single', 'maybeSingle'].includes(n),
+        ),
+      }));
   }
 }
 
 class FakeQuery {
-  private ops: [string, unknown[]][] = [];
-  constructor(private db: FakeSupabase) {}
+  private ops: Op[] = [];
+  constructor(
+    private db: FakeSupabase,
+    private client: ClientKind,
+  ) {}
   private op(name: string, args: unknown[]) {
     this.ops.push([name, args]);
     return this;
@@ -86,15 +110,16 @@ class FakeQuery {
     return this.op('gte', a);
   }
   maybeSingle() {
-    return Promise.resolve(this.resolve());
+    return Promise.resolve(this.op('maybeSingle', []).resolve());
   }
   single() {
-    return Promise.resolve(this.resolve());
+    return Promise.resolve(this.op('single', []).resolve());
   }
   then<T>(onFulfilled: (v: unknown) => T, onRejected?: (e: unknown) => T) {
     return Promise.resolve(this.resolve()).then(onFulfilled, onRejected);
   }
   private resolve(): Row {
+    this.db.queries.push({ client: this.client, ops: this.ops });
     const has = (name: string) => this.ops.find(([n]) => n === name);
     const update = has('update');
     if (update) {
@@ -119,8 +144,8 @@ function setup(respond: ConstructorParameters<typeof FakeAnthropic>[0], db = new
   const anthropic = new FakeAnthropic(respond);
   const deps: HandlerDeps = {
     anthropic,
-    createUserClient: () => db as unknown as SupabaseClient,
-    createAdminClient: () => db as unknown as SupabaseClient,
+    createUserClient: () => db.as('user'),
+    createAdminClient: () => db.as('admin'),
     config: { rateLimitPerHour: 30, effort: 'medium' },
     now: () => new Date('2026-10-04T12:00:00Z'),
   };
@@ -219,6 +244,17 @@ Deno.test('scan success: downloads, calls Claude, saves complete + serving model
 
   assertEquals(db.updates.length, 1);
   assertEquals(db.updates[0]!.status, 'complete');
+  // Results are written with the service role (users cannot update these columns), scoped to
+  // the caller's own row.
+  assertEquals(db.queriesWith('update'), [
+    {
+      client: 'admin',
+      filters: [
+        ['eq', ['id', SCAN_ID]],
+        ['eq', ['user_id', USER_ID]],
+      ],
+    },
+  ]);
   assertEquals(db.updates[0]!.model, 'claude-opus-5-5');
   assertEquals((db.updates[0]!.raw_result as Row).analysis, VALID_ANALYSIS);
 });
@@ -249,8 +285,9 @@ Deno.test('rate limit: N other scans in the last hour is 429, before any AI call
   assertEquals(res.status, 429);
   assertEquals(anthropic.calls.length, 0);
   assertEquals(db.downloads.length, 0);
-  // Counts the last hour only, excluding the scan being analysed.
+  // Counts the caller's scans in the last hour only, excluding the scan being analysed.
   assertEquals(db.countFilters, [
+    ['eq', ['user_id', USER_ID]],
     ['gte', ['created_at', '2026-10-04T11:00:00.000Z']],
     ['neq', ['id', SCAN_ID]],
   ]);
@@ -346,12 +383,62 @@ Deno.test('text-only entry creates a scan row and analyses the text', async () =
   const res = await handler(post({ text: 'two boiled eggs and a slice of toast' }));
   assertEquals(res.status, 200);
   assertEquals((await res.json()).scan_id, TEXT_SCAN_ID);
-  assertEquals(db.inserts, [{ user_id: USER_ID, image_path: null, status: 'pending' }]);
+  // status / created_at are left to the database, which forces them on client inserts.
+  assertEquals(db.inserts, [{ user_id: USER_ID, image_path: null }]);
+  assertEquals(
+    db.queriesWith('insert').map((q) => q.client),
+    ['user'],
+  );
   assertEquals(db.downloads.length, 0);
   const content = anthropic.calls[0]!.messages[0]!.content;
   assert(Array.isArray(content) && content.length === 1 && content[0]?.type === 'text');
   assert(content[0].text.includes('two boiled eggs'));
   assertEquals(db.updates[0]!.status, 'complete');
+  assertEquals(db.queriesWith('update'), [
+    {
+      client: 'admin',
+      filters: [
+        ['eq', ['id', TEXT_SCAN_ID]],
+        ['eq', ['user_id', USER_ID]],
+      ],
+    },
+  ]);
+});
+
+Deno.test('rate limit: text entries are counted too', async () => {
+  const db = new FakeSupabase();
+  db.recentScanCount = 30;
+  const { handler, anthropic } = setup(ok, db);
+  const res = await handler(post({ text: 'a banana' }));
+  assertEquals(res.status, 429);
+  assertEquals(anthropic.calls.length, 0);
+  assertEquals(db.inserts.length, 0);
+  await res.body?.cancel();
+});
+
+Deno.test('rate limit is counted with the service role, scoped to the caller', async () => {
+  // Users can no longer delete scans, but the count must not depend on RLS either way.
+  const { handler, db } = setup(ok);
+  const res = await handler(post({ scan_id: SCAN_ID }));
+  assertEquals(res.status, 200);
+  const counts = db.queries.filter((q) =>
+    q.ops.some(([n, a]) => n === 'select' && (a[1] as { head?: boolean } | undefined)?.head),
+  );
+  assertEquals(
+    counts.map((q) => q.client),
+    ['admin'],
+  );
+  assert(counts[0]!.ops.some(([n, a]) => n === 'eq' && a[0] === 'user_id' && a[1] === USER_ID));
+  await res.body?.cancel();
+});
+
+Deno.test('scan is loaded through the user client (RLS proves ownership)', async () => {
+  const { handler, db } = setup(ok);
+  const res = await handler(post({ scan_id: SCAN_ID }));
+  assertEquals(res.status, 200);
+  const lookup = db.queries.find((q) => q.ops.some(([n]) => n === 'maybeSingle'));
+  assertEquals(lookup?.client, 'user');
+  await res.body?.cancel();
 });
 
 Deno.test('system prompt is long enough to be cacheable (512-token minimum)', () => {

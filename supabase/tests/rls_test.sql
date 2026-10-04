@@ -1,4 +1,5 @@
--- RLS / ownership tests for the init migration. Run with: supabase test db
+-- RLS / ownership tests for the init migration (plus the scans hardening
+-- migration, which changes how scan deletes fail). Run with: supabase test db
 --
 -- Creates two users (A and B), gives each a scan, a meal and meal items, then
 -- checks as user A that nothing of user B's can be read or modified.
@@ -126,11 +127,14 @@ select throws_ok(
 
 -- 18-23: updates/deletes of B's rows silently affect nothing
 select is_empty(
-  $$update public.scans set status = 'failed' where id = 'b0000000-0000-4000-8000-000000000001' returning id$$,
+  $$update public.scans set image_path = 'hacked' where id = 'b0000000-0000-4000-8000-000000000001' returning id$$,
   'A cannot update B''s scan'
 );
-select is_empty(
-  $$delete from public.scans where id = 'b0000000-0000-4000-8000-000000000001' returning id$$,
+-- Scans are append-only for users (20261005000000_harden_scans.sql), so this is
+-- a privilege error rather than an RLS no-op.
+select throws_ok(
+  $$delete from public.scans where id = 'b0000000-0000-4000-8000-000000000001'$$,
+  '42501', null,
   'A cannot delete B''s scan'
 );
 select is_empty(

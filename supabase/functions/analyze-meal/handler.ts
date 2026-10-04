@@ -42,9 +42,18 @@ export interface HandlerConfig {
 
 export interface HandlerDeps {
   anthropic: MessagesClient;
-  /** supabase-js client acting as the caller (their JWT in the Authorization header), so RLS applies. */
+  /**
+   * supabase-js client acting as the caller (their JWT in the Authorization header), so RLS
+   * applies. Used to resolve the user, load the scan (proving ownership) and create text-entry
+   * scans.
+   */
   createUserClient(authHeader: string): SupabaseClient;
-  /** Service-role client. Used only to download the photo from Storage. */
+  /**
+   * Service-role client (bypasses RLS). Used to download the photo from Storage, count recent
+   * scans for the rate limit, and record status / raw_result / model, which users cannot write
+   * (see supabase/migrations/20261005000000_harden_scans.sql). Every scans query on it is scoped
+   * to the caller's user_id.
+   */
   createAdminClient(): SupabaseClient;
   config: HandlerConfig;
   now?: () => Date;
@@ -91,6 +100,7 @@ export function createHandler(deps: HandlerDeps): (req: Request) => Promise<Resp
     if (authError || !user) {
       return errorResponse(401, 'unauthorized', 'Invalid or expired token.');
     }
+    const admin = deps.createAdminClient();
 
     // --- Body ----------------------------------------------------------------------------------
     let rawBody: unknown;
@@ -146,10 +156,13 @@ export function createHandler(deps: HandlerDeps): (req: Request) => Promise<Resp
     }
 
     // --- Rate limit: analyses in the last hour, not counting this scan -------------------------
+    // Counted with the service role so that nothing the user can do through RLS (or a future
+    // policy change) hides rows from the count. Users cannot delete scans or change created_at.
     const since = new Date(now().getTime() - 60 * 60 * 1000).toISOString();
-    let countQuery = db
+    let countQuery = admin
       .from('scans')
       .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
       .gte('created_at', since);
     if (scanId) countQuery = countQuery.neq('id', scanId);
     const { count, error: countError } = await countQuery;
@@ -168,7 +181,6 @@ export function createHandler(deps: HandlerDeps): (req: Request) => Promise<Resp
     // --- Build the model input --------------------------------------------------------------
     let input: AnalyzeInput;
     if ('scan_id' in body.data) {
-      const admin = deps.createAdminClient();
       const { data: blob, error } = await admin.storage.from(BUCKET).download(imagePath!);
       if (error || !blob) {
         console.error('photo download failed', error);
@@ -192,9 +204,10 @@ export function createHandler(deps: HandlerDeps): (req: Request) => Promise<Resp
       input = { kind: 'image', mediaType, base64: encodeBase64(bytes), hint: body.data.hint };
     } else {
       // Text-only entries still get a scans row: it is the audit trail and the rate-limit counter.
+      // The database forces status = 'pending' and created_at = now() on client inserts.
       const { data: created, error } = await db
         .from('scans')
-        .insert({ user_id: user.id, image_path: null, status: 'pending' })
+        .insert({ user_id: user.id, image_path: null })
         .select('id')
         .single();
       if (error || !created) {
@@ -205,11 +218,14 @@ export function createHandler(deps: HandlerDeps): (req: Request) => Promise<Resp
       input = { kind: 'text', text: body.data.text };
     }
 
+    // Users may only update image_path, so results are recorded with the service role, scoped to
+    // the caller's own row.
     const saveScan = async (status: ScanStatus, rawResult: unknown, model: string | null) => {
-      const { error } = await db
+      const { error } = await admin
         .from('scans')
         .update({ status, raw_result: rawResult, model })
-        .eq('id', scanId);
+        .eq('id', scanId)
+        .eq('user_id', user.id);
       // The analysis is still returned: the user should not lose a result they already paid for.
       if (error) console.error('scan update failed', { scanId, error });
     };
