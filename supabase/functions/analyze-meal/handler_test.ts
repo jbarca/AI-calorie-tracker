@@ -329,7 +329,7 @@ Deno.test('completed scan returns the stored analysis without calling Claude', a
 });
 
 Deno.test(
-  'claim: called with the service role, scoped to the caller, before any download or AI call',
+  'claim: called with the service role, scoped to the caller, before any AI call',
   async () => {
     const db = new FakeSupabase();
     let statusAtClaude: unknown;
@@ -343,10 +343,10 @@ Deno.test(
       {
         client: 'admin',
         fn: 'claim_analysis',
-        args: { p_user: USER_ID, p_scan: SCAN_ID, p_limit: 30, p_stale: '6 minutes' },
+        args: { p_user: USER_ID, p_scan: SCAN_ID, p_limit: 30, p_stale: '3 minutes' },
       },
     ]);
-    assertEquals(db.events, ['claim', 'download', 'update:complete']);
+    assertEquals(db.events, ['download', 'claim', 'update:complete']);
     assertEquals(statusAtClaude, 'processing');
     assertEquals(db.attempts, 1);
     assertEquals(db.scan!.status, 'complete');
@@ -365,7 +365,7 @@ Deno.test('rate limit: rate_limited claim is 429, before any download or AI call
     message: 'Limit of 30 analyses per hour reached. Try again later.',
   });
   assertEquals(anthropic.calls.length, 0);
-  assertEquals(db.downloads.length, 0);
+  assertEquals(db.downloads.length, 1);
   // The scan was not claimed, so it is left as it was.
   assertEquals(db.updates, []);
   assertEquals(db.scan!.status, 'pending');
@@ -390,7 +390,7 @@ Deno.test(
     assertEquals(res.status, 409);
     assertEquals((await res.json()).error, 'analysis_in_progress');
     assertEquals(anthropic.calls.length, 0);
-    assertEquals(db.downloads.length, 0);
+    assertEquals(db.downloads.length, 1);
     // The other request owns the claim; this one must not overwrite its status.
     assertEquals(db.updates, []);
     assertEquals(db.scan!.status, 'processing');
@@ -471,7 +471,7 @@ Deno.test('claim: a scan completed by another request returns its stored analysi
     analysis: VALID_ANALYSIS,
   });
   assertEquals(anthropic.calls.length, 0);
-  assertEquals(db.downloads.length, 0);
+  assertEquals(db.downloads.length, 1);
   assertEquals(db.updates, []);
   // Re-read with the service role, scoped to the caller.
   assertEquals(db.queriesWith('maybeSingle').at(-1), {
@@ -491,7 +491,7 @@ Deno.test('claim: not_found is 404', async () => {
   assertEquals(res.status, 404);
   assertEquals((await res.json()).error, 'scan_not_found');
   assertEquals(anthropic.calls.length, 0);
-  assertEquals(db.downloads.length, 0);
+  assertEquals(db.downloads.length, 1);
 });
 
 Deno.test('claim: an rpc error is 500, with no AI call', async () => {
@@ -507,7 +507,7 @@ Deno.test('claim: an rpc error is 500, with no AI call', async () => {
     assertEquals(res.status, 500);
     assertEquals((await res.json()).error, 'internal');
     assertEquals(anthropic.calls.length, 0);
-    assertEquals(db.downloads.length, 0);
+    assertEquals(db.downloads.length, 1);
     assertEquals(db.updates, []);
   }
 });
@@ -530,15 +530,10 @@ Deno.test('HEIC photo is 415', async () => {
   const res = await handler(post({ scan_id: SCAN_ID }));
   assertEquals(res.status, 415);
   assertEquals(anthropic.calls.length, 0);
-  // The scan was claimed, so the failure is recorded rather than left 'processing'.
-  assertEquals(db.updates, [
-    {
-      status: 'failed',
-      raw_result: { error: 'unsupported_image_type' },
-      model: null,
-    },
-  ]);
-  assertEquals(db.scan!.status, 'failed');
+  // Rejected before the claim: no attempt is counted and the scan is left untouched.
+  assertEquals(db.rpcs, []);
+  assertEquals(db.updates, []);
+  assertEquals(db.scan!.status, 'pending');
   await res.body?.cancel();
 });
 
@@ -549,13 +544,15 @@ Deno.test('missing photo in storage is 404', async () => {
   const res = await handler(post({ scan_id: SCAN_ID }));
   assertEquals(res.status, 404);
   assertEquals((await res.json()).error, 'image_not_found');
-  assertEquals(db.events, ['claim', 'download', 'update:failed']);
-  assertEquals(db.updates[0]!.raw_result, { error: 'image_not_found' });
-  assertEquals(db.scan!.status, 'failed');
+  // Rejected before the claim: no attempt is counted and the scan is left untouched.
+  assertEquals(db.events, ['download']);
+  assertEquals(db.rpcs, []);
+  assertEquals(db.updates, []);
+  assertEquals(db.scan!.status, 'pending');
 });
 
 Deno.test(
-  'unexpected exception after the claim is 500 and still writes a final status',
+  'unexpected exception while loading the photo is 500, with no claim or status write',
   async () => {
     const db = new FakeSupabase();
     db.photoThrows = true;
@@ -568,14 +565,9 @@ Deno.test(
       scan_id: SCAN_ID,
     });
     assertEquals(anthropic.calls.length, 0);
-    assertEquals(db.updates, [
-      {
-        status: 'failed',
-        raw_result: { error: 'internal' },
-        model: null,
-      },
-    ]);
-    assertEquals(db.scan!.status, 'failed');
+    assertEquals(db.rpcs, []);
+    assertEquals(db.updates, []);
+    assertEquals(db.scan!.status, 'pending');
   },
 );
 
@@ -652,7 +644,7 @@ Deno.test('text-only entry creates a scan row and analyses the text', async () =
     {
       client: 'admin',
       fn: 'claim_analysis',
-      args: { p_user: USER_ID, p_scan: TEXT_SCAN_ID, p_limit: 30, p_stale: '6 minutes' },
+      args: { p_user: USER_ID, p_scan: TEXT_SCAN_ID, p_limit: 30, p_stale: '3 minutes' },
     },
   ]);
   assertEquals(db.events, ['claim', 'update:complete']);

@@ -80,8 +80,13 @@ function errorResponse(
 
 type ScanStatus = 'complete' | 'failed' | 'refused';
 
-/** How long a 'processing' claim blocks duplicates before it may be reclaimed. */
-export const CLAIM_STALE_AFTER = '6 minutes';
+/**
+ * How long a 'processing' claim blocks duplicates before it may be reclaimed. Above the worst-case
+ * Claude call (two 60 s attempts in index.ts) and below a stuck scan being noticeable, so a
+ * function killed mid-call frees its scan quickly. Keep the model timeout under the Edge Function
+ * wall-clock limit (150 s on the free plan).
+ */
+export const CLAIM_STALE_AFTER = '3 minutes';
 
 /** Results of public.claim_analysis() (supabase/migrations/20261006000000_scan_attempts.sql). */
 const CLAIM_RESULTS = ['claimed', 'busy', 'rate_limited', 'complete', 'not_found'] as const;
@@ -180,6 +185,51 @@ export function createHandler(deps: HandlerDeps): (req: Request) => Promise<Resp
       textInput = { kind: 'text', text: body.data.text };
     }
 
+    // --- Build the model input (before the claim) ----------------------------------------------
+    // A missing, oversize or unsupported photo is rejected here, before an attempt is counted: it
+    // never reaches the model, so retrying it must not eat into the hourly limit. These rejections
+    // leave the scan as it was (not written 'failed'), so they cannot clobber a concurrent
+    // attempt's status; the client can re-upload and retry.
+    let input: AnalyzeInput;
+    try {
+      if (textInput) {
+        input = textInput;
+      } else {
+        const { data: blob, error } = await admin.storage.from(BUCKET).download(imagePath!);
+        if (error || !blob) {
+          console.error('photo download failed', error);
+          return errorResponse(404, 'image_not_found', 'The scan photo could not be found.', {
+            scan_id: scanId,
+          });
+        }
+        if (blob.size > MAX_IMAGE_BYTES) {
+          return errorResponse(413, 'image_too_large', 'Photo is larger than 5 MB.', {
+            scan_id: scanId,
+          });
+        }
+        const bytes = new Uint8Array(await blob.arrayBuffer());
+        const mediaType = detectImageType(bytes, imagePath!);
+        if (mediaType === 'image/heic') {
+          return errorResponse(
+            415,
+            'unsupported_image_type',
+            'HEIC photos are not supported. Convert to JPEG before uploading.',
+            { scan_id: scanId },
+          );
+        }
+        if (!mediaType) {
+          return errorResponse(415, 'unsupported_image_type', 'Photo must be JPEG, PNG or WebP.', {
+            scan_id: scanId,
+          });
+        }
+        const hint = 'hint' in body.data ? body.data.hint : undefined;
+        input = { kind: 'image', mediaType, base64: encodeBase64(bytes), hint };
+      }
+    } catch (err) {
+      console.error('unexpected error loading the photo', err);
+      return errorResponse(500, 'internal', 'Unexpected error.', { scan_id: scanId });
+    }
+
     // Users may only update image_path, so results are recorded with the service role, scoped to
     // the caller's own row. Never throws: a failed write is logged, and the stale-claim timeout in
     // claim_analysis() is the backstop for a scan left in 'processing'.
@@ -208,7 +258,7 @@ export function createHandler(deps: HandlerDeps): (req: Request) => Promise<Resp
       p_user: user.id,
       p_scan: scanId,
       p_limit: deps.config.rateLimitPerHour,
-      // Longer than the worst-case Claude call (two 120 s attempts in index.ts), so a slow
+      // Longer than the worst-case Claude call (two 60 s attempts in index.ts), so a slow
       // request is never treated as stale and reclaimed by a duplicate.
       p_stale: CLAIM_STALE_AFTER,
     });
@@ -255,43 +305,9 @@ export function createHandler(deps: HandlerDeps): (req: Request) => Promise<Resp
     }
 
     // --- Claimed: every path from here must write a final status -------------------------------
-    // Explicit failures record their own error code; anything else (an unexpected exception, or a
-    // path that forgot to) is caught by the finally block and recorded as failed.
-    const fail = async (status: number, code: string, message: string): Promise<Response> => {
-      await saveScan('failed', { error: code }, null);
-      return errorResponse(status, code, message, { scan_id: scanId });
-    };
-
+    // Failures after the model call record their own status; anything else (an unexpected
+    // exception, or a path that forgot to) is caught by the finally block and recorded as failed.
     const analyse = async (): Promise<Response> => {
-      // --- Build the model input ------------------------------------------------------------
-      let input: AnalyzeInput;
-      if (textInput) {
-        input = textInput;
-      } else {
-        const { data: blob, error } = await admin.storage.from(BUCKET).download(imagePath!);
-        if (error || !blob) {
-          console.error('photo download failed', error);
-          return fail(404, 'image_not_found', 'The scan photo could not be found.');
-        }
-        if (blob.size > MAX_IMAGE_BYTES) {
-          return fail(413, 'image_too_large', 'Photo is larger than 5 MB.');
-        }
-        const bytes = new Uint8Array(await blob.arrayBuffer());
-        const mediaType = detectImageType(bytes, imagePath!);
-        if (mediaType === 'image/heic') {
-          return fail(
-            415,
-            'unsupported_image_type',
-            'HEIC photos are not supported. Convert to JPEG before uploading.',
-          );
-        }
-        if (!mediaType) {
-          return fail(415, 'unsupported_image_type', 'Photo must be JPEG, PNG or WebP.');
-        }
-        const hint = 'hint' in body.data ? body.data.hint : undefined;
-        input = { kind: 'image', mediaType, base64: encodeBase64(bytes), hint };
-      }
-
       // --- Call Claude ----------------------------------------------------------------------
       let outcome: AnalyzeOutcome;
       try {

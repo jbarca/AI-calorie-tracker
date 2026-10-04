@@ -35,7 +35,7 @@ function buildHandler(): (req: Request) => Promise<Response> {
   return createHandler({
     // The key comes from the function's env only. One SDK retry, and a timeout under the
     // Edge Function wall-clock limit.
-    anthropic: new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 120_000 }),
+    anthropic: new Anthropic({ apiKey: env.ANTHROPIC_API_KEY, maxRetries: 1, timeout: 60_000 }),
     createUserClient: (authHeader) =>
       createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, {
         global: { headers: { Authorization: authHeader } },

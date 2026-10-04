@@ -157,10 +157,24 @@ export async function analyzeMeal(
   }
 
   const trimmedHint = hint?.trim();
-  const result = await invokeAnalyze(
-    { scan_id: pending.scanId, ...(trimmedHint ? { hint: trimmedHint } : {}) },
-    pending,
-  );
+  let result: AnalyzeResponse;
+  try {
+    result = await invokeAnalyze(
+      { scan_id: pending.scanId, ...(trimmedHint ? { hint: trimmedHint } : {}) },
+      pending,
+    );
+  } catch (err) {
+    // The stored photo is gone, so a retry must upload it again rather than reuse imagePath.
+    if (err instanceof AnalyzeError && err.code === 'image_not_found') {
+      throw new AnalyzeError(
+        err.friendly,
+        { scanId: pending.scanId, imagePath: null },
+        err.status,
+        err.code,
+      );
+    }
+    throw err;
+  }
   return { scanId: result.scan_id, analysis: result.analysis, imagePath: pending.imagePath };
 }
 
