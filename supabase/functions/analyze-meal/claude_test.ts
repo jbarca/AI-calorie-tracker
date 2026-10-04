@@ -115,15 +115,17 @@ Deno.test('non-food: is_food false with empty items is a successful analysis', a
   assertEquals(out.analysis.items, []);
 });
 
-Deno.test('schema-invalid output: wrong types or values are rejected', async () => {
-  const bad = {
-    ...VALID_ANALYSIS,
-    items: [{ ...VALID_ANALYSIS.items[0], kcal: -5, confidence: 'certain' }],
-  };
-  const client = new FakeAnthropic(() => textMessage(bad));
-  const out = await analyzeWithClaude(client, IMAGE);
-  assertEquals(out.kind, 'invalid_output');
-});
+for (const [name, patch] of [
+  ['negative kcal', { kcal: -5 }],
+  ['unknown confidence', { confidence: 'certain' }],
+] as const) {
+  Deno.test(`schema-invalid output: ${name} is rejected`, async () => {
+    const bad = { ...VALID_ANALYSIS, items: [{ ...VALID_ANALYSIS.items[0], ...patch }] };
+    const client = new FakeAnthropic(() => textMessage(bad));
+    const out = await analyzeWithClaude(client, IMAGE);
+    assertEquals(out.kind, 'invalid_output');
+  });
+}
 
 Deno.test('schema-invalid output: missing field is rejected', async () => {
   const { notes: _notes, ...missing } = VALID_ANALYSIS;

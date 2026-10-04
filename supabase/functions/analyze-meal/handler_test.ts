@@ -41,6 +41,8 @@ class FakeSupabase {
   /** Forces the claim_analysis result instead of simulating it. */
   claimOverride: string | null = null;
   rpcError: Error | null = null;
+  /** Makes scan result writes fail. */
+  updateError: Error | null = null;
   photo: Uint8Array | null = JPEG;
   photoThrows = false;
   updates: Row[] = [];
@@ -168,6 +170,7 @@ class FakeQuery {
       this.db.updates.push(values);
       this.db.events.push(`update:${values.status}`);
       const row = this.db.findScan(idFilter);
+      if (this.db.updateError) return { error: this.db.updateError };
       if (row) Object.assign(row, values);
       return { error: null };
     }
@@ -354,7 +357,7 @@ Deno.test(
   },
 );
 
-Deno.test('rate limit: rate_limited claim is 429, before any download or AI call', async () => {
+Deno.test('rate limit: rate_limited claim is 429, with no AI call', async () => {
   const db = new FakeSupabase();
   db.attempts = 30;
   const { handler, anthropic } = setup(ok, db);
@@ -408,7 +411,8 @@ Deno.test('busy: concurrent requests for one scan make a single AI call', async 
   }, db);
   const first = handler(post({ scan_id: SCAN_ID }));
   // Let the first request reach Claude (and so hold the claim) before the duplicates arrive.
-  while (anthropic.calls.length === 0) {
+  for (let spins = 0; anthropic.calls.length === 0; spins++) {
+    assert(spins < 1000, 'first request never reached Claude');
     await new Promise((r) => setTimeout(r, 0));
   }
   const dupes = await Promise.all([
@@ -693,4 +697,70 @@ Deno.test('scan is loaded through the user client (RLS proves ownership)', async
 Deno.test('system prompt is long enough to be cacheable (512-token minimum)', () => {
   // ~4 characters per token for English prose; keep a comfortable margin.
   assert(SYSTEM_PROMPT.length > 3000, `system prompt is only ${SYSTEM_PROMPT.length} chars`);
+});
+
+Deno.test('photo over 5 MB is 413, before any claim', async () => {
+  const db = new FakeSupabase();
+  db.photo = new Uint8Array(5 * 1024 * 1024 + 1);
+  const { handler, anthropic } = setup(ok, db);
+  const res = await handler(post({ scan_id: SCAN_ID }));
+  assertEquals(res.status, 413);
+  assertEquals((await res.json()).error, 'image_too_large');
+  assertEquals(anthropic.calls.length, 0);
+  assertEquals(db.rpcs, []);
+  assertEquals(db.updates, []);
+});
+
+Deno.test('scan without a photo is 400 no_image', async () => {
+  const db = new FakeSupabase();
+  db.scan = { ...db.scan!, image_path: null };
+  const { handler, anthropic } = setup(ok, db);
+  const res = await handler(post({ scan_id: SCAN_ID }));
+  assertEquals(res.status, 400);
+  assertEquals((await res.json()).error, 'no_image');
+  assertEquals(anthropic.calls.length, 0);
+  assertEquals(db.rpcs, []);
+});
+
+Deno.test('image path with .. inside the caller folder is 403', async () => {
+  const db = new FakeSupabase();
+  db.scan = { ...db.scan!, image_path: `${USER_ID}/../someone-else/${SCAN_ID}.jpg` };
+  const { handler, anthropic } = setup(ok, db);
+  const res = await handler(post({ scan_id: SCAN_ID }));
+  assertEquals(res.status, 403);
+  assertEquals(db.downloads.length, 0);
+  assertEquals(anthropic.calls.length, 0);
+  await res.body?.cancel();
+});
+
+Deno.test('claim rpc failure on a text entry closes the new scan as failed', async () => {
+  const db = new FakeSupabase();
+  db.rpcError = new Error('db down');
+  const { handler, anthropic } = setup(ok, db);
+  const res = await handler(post({ text: 'a banana' }));
+  assertEquals(res.status, 500);
+  assertEquals(anthropic.calls.length, 0);
+  assertEquals(db.updates, [
+    { status: 'failed', raw_result: { error: 'claim_failed' }, model: null },
+  ]);
+});
+
+Deno.test('busy on a text entry is 409 and leaves the new scan alone', async () => {
+  const db = new FakeSupabase();
+  db.claimOverride = 'busy';
+  const { handler, anthropic } = setup(ok, db);
+  const res = await handler(post({ text: 'a banana' }));
+  assertEquals(res.status, 409);
+  assertEquals((await res.json()).error, 'analysis_in_progress');
+  assertEquals(anthropic.calls.length, 0);
+  assertEquals(db.updates, []);
+});
+
+Deno.test('a failed result write is logged but the analysis is still returned', async () => {
+  const db = new FakeSupabase();
+  db.updateError = new Error('write failed');
+  const { handler } = setup(ok, db);
+  const res = await handler(post({ scan_id: SCAN_ID }));
+  assertEquals(res.status, 200);
+  assertEquals((await res.json()).scan_id, SCAN_ID);
 });

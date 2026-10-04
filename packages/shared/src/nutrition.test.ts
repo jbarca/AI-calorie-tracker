@@ -90,6 +90,13 @@ describe('isUserEdited / toMealItemRow', () => {
     expect(isUserEdited(withGrams(withGrams(item, 200), 158))).toBe(false);
   });
 
+  it('does not flag a fractional AI estimate that was only re-committed', () => {
+    const item = draftFromAnalysisItem({ ...rice, estimated_grams: 120.5 }, 'f');
+    expect(isUserEdited(item)).toBe(false);
+    expect(isUserEdited(withGrams(item, 120.5))).toBe(false);
+    expect(isUserEdited(withGrams(item, 130))).toBe(true);
+  });
+
   it('treats manual rows and previously edited rows as edited', () => {
     const manual = draftFromManualInput(
       { name: 'apple', grams: 150, kcal: 78, protein_g: 0.4, carbs_g: 21, fat_g: 0.3 },

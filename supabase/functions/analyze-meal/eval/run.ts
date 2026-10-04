@@ -151,7 +151,7 @@ async function main() {
 
   const apiKey = Deno.env.get('ANTHROPIC_API_KEY');
   if (!apiKey) fail('ANTHROPIC_API_KEY is not set.');
-  const client = new Anthropic({ apiKey, maxRetries: 2, timeout: 180_000 });
+  const client = new Anthropic({ apiKey, maxRetries: 1, timeout: 60_000 });
 
   const rows: EvalRow[] = [];
   for (const [i, entry] of entries.entries()) {

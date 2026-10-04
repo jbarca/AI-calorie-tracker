@@ -94,7 +94,7 @@ Expo Router screens live in `app/app`, everything else in `app/src` (imported as
 - **Scan flow** (`src/lib/api.ts` → `analyzeMeal`): resize to 1024 px / JPEG 0.7
   (`src/lib/image.ts`) → insert a `scans` row → upload to `meal-photos/{user_id}/{scan_id}.jpg` →
   set `image_path` → `functions.invoke('analyze-meal')`. A retry reuses the same scan. Function
-  errors (401/404/413/415/422/429/502/503) map to friendly messages in `@calorie/shared`.
+  errors (401/403/404/409/413/415/422/429/502/503) map to friendly messages in `@calorie/shared`.
 - **Days are local:** Today and History query `meals.eaten_at` with the device's local-day
   boundaries rather than the UTC `daily_totals` view.
 - **Pure logic** (rescaling, totals, meal-type default, draft editing, dates, error mapping) is in
@@ -124,8 +124,18 @@ Do this once per Supabase project, in the dashboard unless noted.
 1. **Magic-link email template:** Authentication → Emails → Magic Link. Include the 6-digit code,
    e.g. `<p>Your code: {{ .Token }}</p>`, next to the link. The default template only has the
    link, and the app's code-entry path needs `{{ .Token }}`.
-2. **Redirect URLs:** Authentication → URL Configuration. Add `aicalorietracker://**` (and
-   `exp://**` while using Expo Go), matching `additional_redirect_urls` in `supabase/config.toml`.
+   Also edit **Confirm signup**: the app signs in with `signInWithOtp` and `shouldCreateUser`, so
+   with email confirmations on (the hosted default) a brand-new user gets that template instead,
+   and the code-entry path needs `{{ .Token }}` there too.
+2. **Redirect URLs:** Authentication → URL Configuration. Add `aicalorietracker://**`, matching
+   `additional_redirect_urls` in `supabase/config.toml`. Add `exp://**` only while using Expo Go
+   and remove it for production.
+   **Email auth hardening:** keep Confirm email enabled on the hosted project (local
+   `config.toml` disables it for convenience). Otherwise anyone can register a victim's address
+   with a password and later share an account with that victim's OTP or Google sign-in. The app
+   never uses passwords. Hosted projects also need custom SMTP: the built-in sender allows only
+   a few emails per hour, and the local `email_sent = 2` limit means a full pass through the
+   sign-in section of `docs/QA.md` can hit it.
 3. **Google provider:** Authentication → Providers → Google. Enable it with a Google Cloud OAuth
    client (web application) id and secret, and add the Supabase callback URL shown there to the
    Google client's authorised redirect URIs.
@@ -154,8 +164,8 @@ Do this once per Supabase project, in the dashboard unless noted.
 
 ## CI
 
-`.github/workflows/ci.yml` runs on pull requests, on pushes to `main` and on pushes to `claude/**`
-branches. Superseded runs of the same branch are cancelled. Jobs:
+`.github/workflows/ci.yml` runs on pull requests and on pushes to `main`. Superseded runs of the same
+branch or PR are cancelled. Jobs:
 
 | Job         | What it runs                                                                                                   |
 | ----------- | -------------------------------------------------------------------------------------------------------------- |
@@ -185,9 +195,20 @@ output, server-side refusal fallbacks).
 401 (no or invalid JWT), 400 (bad body), 404 (scan or photo not found), 403 (photo outside the
 caller's folder), 413/415 (image too large or unsupported type), 429 (per-user hourly limit, or
 the AI service is rate limited), 422 (`refused`: the model declined), 502 (truncated or invalid
-AI output, or an upstream API error), and 503 (AI service unreachable or timed out). Every call
-updates `scans.status` (`complete` / `failed` / `refused`), `raw_result` and `model` (the model
-that actually served the request, which can be a fallback model).
+AI output, or an upstream API error), 503 (AI service unreachable or timed out), and 409
+(`analysis_in_progress`: another request is already analysing this scan).
+
+Once a request has won `claim_analysis()` it sets `scans.status` to `processing`, then to
+`complete`, `failed` or `refused`, and records `raw_result` and `model` (the model that actually
+served the request, which can be a fallback model). Requests rejected before the claim leave the
+scan untouched, so they neither count against the rate limit nor change its status: 403
+`forbidden_path`, 404 `scan_not_found` / `image_not_found`, 413, 415, and 400 `no_image`. So do
+409 and 429 `rate_limited`, which are refused by the claim itself. The photo is downloaded and
+checked before the claim, so even a refused request costs one storage download.
+
+The `meal-photos` bucket accepts HEIC and files up to 10 MB, but the function rejects HEIC (415)
+and anything over 5 MB (413). The app resizes and re-encodes every photo to JPEG first, so only a
+direct upload can hit this; such a photo uploads fine and then fails analysis.
 
 **Environment variables**
 

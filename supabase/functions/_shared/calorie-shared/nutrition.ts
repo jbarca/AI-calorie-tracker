@@ -196,7 +196,10 @@ export function withGrams(item: DraftItem, grams: number): DraftItem {
 /** True when the row differs from what the AI (or the saved meal) produced. */
 export function isUserEdited(item: DraftItem): boolean {
   if (item.wasEdited || !item.original) return true;
-  return item.name.trim() !== item.original.name.trim() || item.grams !== item.original.grams;
+  return (
+    item.name.trim() !== item.original.name.trim() ||
+    Math.round(item.grams) !== Math.round(item.original.grams)
+  );
 }
 
 export type DraftAction =

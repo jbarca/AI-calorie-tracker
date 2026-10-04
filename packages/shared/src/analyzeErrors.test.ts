@@ -32,6 +32,14 @@ describe('friendlyAnalyzeError', () => {
     });
   });
 
+  it('falls back sensibly for statuses and codes it does not know', () => {
+    expect(friendlyAnalyzeError(400, 'invalid_body')).toMatchObject({ retake: true });
+    expect(friendlyAnalyzeError(404)).toMatchObject({ retake: true, retryable: false });
+    expect(friendlyAnalyzeError(502, 'upstream_error')).toMatchObject({ retryable: true });
+    expect(friendlyAnalyzeError(418)).toMatchObject({ retryable: true });
+    expect(friendlyAnalyzeError(null)).toMatchObject({ title: 'No connection', retryable: true });
+  });
+
   it('mentions the refusal for 422 refused', () => {
     expect(friendlyAnalyzeError(422, 'refused').message).toMatch(/declined/);
   });
