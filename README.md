@@ -239,5 +239,7 @@ npx supabase functions deploy delete-account
 
 **Test** with `npm run test:functions`. The tests use a fake Anthropic client and a fake
 Supabase client, so they never call the real API. The accuracy eval (labelled photos, scored by
-MAPE, bias, ±20% hit rate and non-food accuracy) is run by hand with your own API key; see
+MAPE, bias, ±20% hit rate and non-food accuracy) is run by hand with your own API key. Follow
+the step-by-step process and keep the run log in [`docs/ACCURACY_EVAL.md`](docs/ACCURACY_EVAL.md);
+the runner itself is described in
 [`supabase/functions/analyze-meal/eval/README.md`](supabase/functions/analyze-meal/eval/README.md).
