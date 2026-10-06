@@ -1,39 +1,45 @@
-import { assertAlmostEquals, assertEquals, assertStringIncludes, assertThrows } from '@std/assert';
+import {
+  assertAlmostEquals,
+  assertEquals,
+  assertStringIncludes,
+  assertThrows,
+} from "@std/assert";
 import {
   type EvalRow,
   formatReport,
   percentError,
+  sampleAcrossCategories,
   summarize,
   summarizeByCategory,
   totalTokens,
-} from './metrics.ts';
+} from "./metrics.ts";
 
 function row(partial: Partial<EvalRow>): EvalRow {
   return {
-    image: 'x.jpg',
+    image: "x.jpg",
     true_kcal: 500,
     expected_is_food: true,
-    outcome: 'ok',
+    outcome: "ok",
     predicted_kcal: 500,
     predicted_is_food: true,
     tokens: 100,
     latency_ms: 1000,
-    model: 'claude-opus-5-5',
+    model: "claude-opus-5-5",
     ...partial,
   };
 }
 
-Deno.test('percentError: signed, relative to the truth', () => {
+Deno.test("percentError: signed, relative to the truth", () => {
   assertEquals(percentError(600, 500), 20);
   assertEquals(percentError(400, 500), -20);
   assertThrows(() => percentError(100, 0), RangeError);
 });
 
-Deno.test('summarize: MAPE, bias, ±20% hit rate over food rows', () => {
+Deno.test("summarize: MAPE, bias, ±20% hit rate over food rows", () => {
   const s = summarize([
-    row({ image: 'a', true_kcal: 500, predicted_kcal: 600 }), // +20%
-    row({ image: 'b', true_kcal: 400, predicted_kcal: 300 }), // -25%
-    row({ image: 'c', true_kcal: 200, predicted_kcal: 210 }), // +5%
+    row({ image: "a", true_kcal: 500, predicted_kcal: 600 }), // +20%
+    row({ image: "b", true_kcal: 400, predicted_kcal: 300 }), // -25%
+    row({ image: "c", true_kcal: 200, predicted_kcal: 210 }), // +5%
   ]);
   assertEquals(s.images, 3);
   assertEquals(s.scored_food, 3);
@@ -46,28 +52,33 @@ Deno.test('summarize: MAPE, bias, ±20% hit rate over food rows', () => {
   assertEquals(s.total_tokens, 300);
 });
 
-Deno.test('summarize: failures and non-food rows are kept out of the kcal metrics', () => {
+Deno.test("summarize: failures and non-food rows are kept out of the kcal metrics", () => {
   const s = summarize([
-    row({ image: 'a', true_kcal: 500, predicted_kcal: 450 }), // -10%
-    row({ image: 'b', outcome: 'refused', predicted_kcal: null, predicted_is_food: null }),
+    row({ image: "a", true_kcal: 500, predicted_kcal: 450 }), // -10%
     row({
-      image: 'c',
+      image: "b",
+      outcome: "refused",
+      predicted_kcal: null,
+      predicted_is_food: null,
+    }),
+    row({
+      image: "c",
       expected_is_food: false,
       true_kcal: 0,
       predicted_kcal: 0,
       predicted_is_food: false,
     }),
     row({
-      image: 'd',
+      image: "d",
       expected_is_food: false,
       true_kcal: 0,
       predicted_kcal: 90,
       predicted_is_food: true,
     }),
     row({
-      image: 'e',
+      image: "e",
       expected_is_food: false,
-      outcome: 'error',
+      outcome: "error",
       predicted_kcal: null,
       predicted_is_food: null,
       tokens: 0,
@@ -84,7 +95,7 @@ Deno.test('summarize: failures and non-food rows are kept out of the kcal metric
   assertEquals(s.total_tokens, 400);
 });
 
-Deno.test('summarize: empty input gives nulls, not NaN', () => {
+Deno.test("summarize: empty input gives nulls, not NaN", () => {
   const s = summarize([]);
   assertEquals(s.mape, null);
   assertEquals(s.bias_pct, null);
@@ -93,7 +104,7 @@ Deno.test('summarize: empty input gives nulls, not NaN', () => {
   assertEquals(s.total_tokens, 0);
 });
 
-Deno.test('totalTokens: adds cache tokens, tolerating nulls', () => {
+Deno.test("totalTokens: adds cache tokens, tolerating nulls", () => {
   assertEquals(totalTokens({ input_tokens: 10, output_tokens: 5 }), 15);
   assertEquals(
     totalTokens({
@@ -106,27 +117,52 @@ Deno.test('totalTokens: adds cache tokens, tolerating nulls', () => {
   );
 });
 
-Deno.test('formatReport: per-image rows and aggregates', () => {
-  const rows = [row({ image: 'plate.jpg', predicted_kcal: 550 })];
+Deno.test("formatReport: per-image rows and aggregates", () => {
+  const rows = [row({ image: "plate.jpg", predicted_kcal: 550 })];
   const report = formatReport(rows, summarize(rows));
-  assertStringIncludes(report, 'plate.jpg');
-  assertStringIncludes(report, '10.0');
-  assertStringIncludes(report, 'MAPE');
-  assertStringIncludes(report, 'non-food accuracy');
+  assertStringIncludes(report, "plate.jpg");
+  assertStringIncludes(report, "10.0");
+  assertStringIncludes(report, "MAPE");
+  assertStringIncludes(report, "non-food accuracy");
 });
 
-Deno.test('summarizeByCategory: per-category kcal metrics, non-food left out', () => {
+Deno.test("summarizeByCategory: per-category kcal metrics, non-food left out", () => {
   const cats = summarizeByCategory([
-    row({ image: 'a', category: 'packaged', true_kcal: 100, predicted_kcal: 110 }), // +10%
-    row({ image: 'b', category: 'packaged', true_kcal: 100, predicted_kcal: 70 }), // -30%
-    row({ image: 'c', category: 'mixed-plate', true_kcal: 500, predicted_kcal: 500 }),
-    row({ image: 'd', true_kcal: 200, predicted_kcal: 300 }), // +50%, no category
-    row({ image: 'e', category: 'packaged', outcome: 'refused', predicted_kcal: null }),
-    row({ image: 'f', category: 'non-food', expected_is_food: false, true_kcal: 0 }),
+    row({
+      image: "a",
+      category: "packaged",
+      true_kcal: 100,
+      predicted_kcal: 110,
+    }), // +10%
+    row({
+      image: "b",
+      category: "packaged",
+      true_kcal: 100,
+      predicted_kcal: 70,
+    }), // -30%
+    row({
+      image: "c",
+      category: "mixed-plate",
+      true_kcal: 500,
+      predicted_kcal: 500,
+    }),
+    row({ image: "d", true_kcal: 200, predicted_kcal: 300 }), // +50%, no category
+    row({
+      image: "e",
+      category: "packaged",
+      outcome: "refused",
+      predicted_kcal: null,
+    }),
+    row({
+      image: "f",
+      category: "non-food",
+      expected_is_food: false,
+      true_kcal: 0,
+    }),
   ]);
   assertEquals(
     cats.map((c) => c.category),
-    ['mixed-plate', 'packaged', 'uncategorised'],
+    ["mixed-plate", "packaged", "uncategorised"],
   );
   const packaged = cats[1]!;
   assertEquals(packaged.scored_food, 2);
@@ -136,12 +172,29 @@ Deno.test('summarizeByCategory: per-category kcal metrics, non-food left out', (
   assertAlmostEquals(cats[2]!.mape!, 50);
 });
 
-Deno.test('formatReport: category table only when there are several categories', () => {
-  const one = [row({ image: 'a', category: 'single-food' })];
-  assertEquals(formatReport(one, summarize(one)).includes('category'), false);
-  const two = [...one, row({ image: 'b', category: 'packaged', predicted_kcal: 600 })];
+Deno.test("formatReport: category table only when there are several categories", () => {
+  const one = [row({ image: "a", category: "single-food" })];
+  assertEquals(formatReport(one, summarize(one)).includes("category"), false);
+  const two = [
+    ...one,
+    row({ image: "b", category: "packaged", predicted_kcal: 600 }),
+  ];
   const report = formatReport(two, summarize(two));
-  assertStringIncludes(report, 'category');
-  assertStringIncludes(report, 'packaged');
-  assertStringIncludes(report, '20.0%');
+  assertStringIncludes(report, "category");
+  assertStringIncludes(report, "packaged");
+  assertStringIncludes(report, "20.0%");
+});
+
+Deno.test("sampleAcrossCategories: round-robin over categories, capped at n", () => {
+  const entries = [
+    { image: "a1", category: "a" },
+    { image: "a2", category: "a" },
+    { image: "b1", category: "b" },
+    { image: "c1" },
+  ];
+  assertEquals(
+    sampleAcrossCategories(entries, 3).map((e) => e.image),
+    ["a1", "b1", "c1"],
+  );
+  assertEquals(sampleAcrossCategories(entries, 99).length, 4);
 });
