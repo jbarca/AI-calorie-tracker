@@ -1,20 +1,20 @@
 /** The `dataset.json` schema, shared by `run.ts` and `fetch.ts`. */
-import { z } from "zod";
+import { z } from 'zod';
 
 /** Hosts `fetch.ts` may download from; keep in step with `--allow-net` in deno.json. */
 export const SOURCE_HOSTS = [
-  "storage.googleapis.com",
-  "openfoodfacts-images.s3.eu-west-3.amazonaws.com",
-  "raw.githubusercontent.com",
+  'storage.googleapis.com',
+  'openfoodfacts-images.s3.eu-west-3.amazonaws.com',
+  'raw.githubusercontent.com',
 ];
 
 export const Dataset = z.array(
   z.object({
     /** File name under eval/photos/. */
-    image: z.string().min(1).regex(
-      /^[^/\\]+$/,
-      "image must be a plain file name, not a path",
-    ),
+    image: z
+      .string()
+      .min(1)
+      .regex(/^[^/\\]+$/, 'image must be a plain file name, not a path'),
     /** Ground-truth kcal; use 0 for non-food photos. */
     true_kcal: z.number().nonnegative(),
     /** Defaults to true. Set false for photos that do not show food. */
@@ -25,7 +25,7 @@ export const Dataset = z.array(
     source: z
       .url()
       .refine((u) => SOURCE_HOSTS.includes(new URL(u).hostname), {
-        message: `source host must be one of ${SOURCE_HOSTS.join(", ")}`,
+        message: `source host must be one of ${SOURCE_HOSTS.join(', ')}`,
       })
       .optional(),
     /** Licence and attribution of a `source` photo. */
@@ -34,9 +34,7 @@ export const Dataset = z.array(
   }),
 );
 /** Rejects a dataset in which two entries use the same `image` name. */
-export function duplicateImages(
-  entries: readonly { image: string }[],
-): string[] {
+export function duplicateImages(entries: readonly { image: string }[]): string[] {
   const seen = new Set<string>();
   const dupes = new Set<string>();
   for (const { image } of entries) {

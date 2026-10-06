@@ -6,11 +6,11 @@
  *
  *   deno task --config supabase/functions/analyze-meal/deno.json eval:fetch
  */
-import { Jimp } from "jimp";
-import { Dataset, duplicateImages } from "./dataset.ts";
+import { Jimp } from 'jimp';
+import { Dataset, duplicateImages } from './dataset.ts';
 
-const EVAL_DIR = new URL("./", import.meta.url);
-const PHOTOS_URL = new URL("photos/", EVAL_DIR);
+const EVAL_DIR = new URL('./', import.meta.url);
+const PHOTOS_URL = new URL('photos/', EVAL_DIR);
 const LONG_EDGE = 1024;
 const CONCURRENCY = 8;
 const TIMEOUT_MS = 30_000;
@@ -39,7 +39,7 @@ async function toJpeg(bytes: ArrayBuffer): Promise<Uint8Array> {
   if (Math.max(image.width, image.height) > LONG_EDGE) {
     image.scaleToFit({ w: LONG_EDGE, h: LONG_EDGE });
   }
-  return new Uint8Array(await image.getBuffer("image/jpeg", { quality: 85 }));
+  return new Uint8Array(await image.getBuffer('image/jpeg', { quality: 85 }));
 }
 
 async function exists(url: URL): Promise<boolean> {
@@ -60,7 +60,7 @@ async function writeAtomic(url: URL, bytes: Uint8Array): Promise<void> {
 
 async function main() {
   const parsed = Dataset.safeParse(
-    JSON.parse(await Deno.readTextFile(new URL("dataset.json", EVAL_DIR))),
+    JSON.parse(await Deno.readTextFile(new URL('dataset.json', EVAL_DIR))),
   );
   if (!parsed.success) {
     console.error(`eval/dataset.json is invalid:\n${parsed.error.message}`);
@@ -69,11 +69,7 @@ async function main() {
   const dataset = parsed.data;
   const dupes = duplicateImages(dataset);
   if (dupes.length > 0) {
-    console.error(
-      `eval/dataset.json lists these images more than once: ${
-        dupes.join(", ")
-      }`,
-    );
+    console.error(`eval/dataset.json lists these images more than once: ${dupes.join(', ')}`);
     Deno.exit(1);
   }
   await Deno.mkdir(PHOTOS_URL, { recursive: true });
@@ -81,7 +77,7 @@ async function main() {
   const todo = [];
   for (const entry of dataset) {
     if (!entry.source) continue;
-    if (!entry.image.endsWith(".jpg")) {
+    if (!entry.image.endsWith('.jpg')) {
       throw new Error(`${entry.image}: sourced photos must be .jpg`);
     }
     if (!(await exists(new URL(entry.image, PHOTOS_URL)))) todo.push(entry);
@@ -95,26 +91,17 @@ async function main() {
     Array.from({ length: CONCURRENCY }, async () => {
       for (let entry = queue.shift(); entry; entry = queue.shift()) {
         try {
-          await writeAtomic(
-            new URL(entry.image, PHOTOS_URL),
-            await download(entry.source!),
-          );
+          await writeAtomic(new URL(entry.image, PHOTOS_URL), await download(entry.source!));
           console.log(`[${++done}/${todo.length}] ${entry.image}`);
         } catch (err) {
           failed.push(entry.image);
-          console.error(
-            `${entry.image}: ${
-              err instanceof Error ? err.message : String(err)
-            }`,
-          );
+          console.error(`${entry.image}: ${err instanceof Error ? err.message : String(err)}`);
         }
       }
     }),
   );
   if (failed.length > 0) {
-    console.error(
-      `\n${failed.length} download(s) failed: ${failed.join(", ")}`,
-    );
+    console.error(`\n${failed.length} download(s) failed: ${failed.join(', ')}`);
     Deno.exit(1);
   }
 }
