@@ -6,11 +6,18 @@ appId: host.exp.exponent
 - launchApp:
     clearState: true
 - openLink: ${EXPO_URL}
-# First load bundles with Metro, which is slow on a cold CI runner. The app title also shows on
-# Expo Go's loading screen, so wait for the sign-in field itself (by label or placeholder).
+# First load bundles with Metro, which is slow on a cold CI runner. Expo Go also shows a one-time
+# "developer menu" sheet (it repeats the app title) over the app, so wait for either that sheet or
+# the sign-in field, dismiss the sheet if it is there, then wait for the field itself.
+- extendedWaitUntil:
+    visible: 'Continue|Email address|you@example\.com'
+    timeout: 300000
+- tapOn:
+    text: 'Continue'
+    optional: true
 - extendedWaitUntil:
     visible: 'Email address|you@example\.com'
-    timeout: 300000
+    timeout: 120000
 
 # --- Sign in with the emailed 6-digit code ---------------------------------------------------
 - tapOn: 'Email address|you@example\.com'
