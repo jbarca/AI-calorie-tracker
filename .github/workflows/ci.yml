@@ -169,8 +169,12 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_6
+          ram-size: 4096M
+          heap-size: 512M
           disable-animations: true
           script: |
+            # A slow CI emulator makes system apps ANR; the dialog then covers Expo Go and blocks Maestro.
+            adb shell settings put global hide_error_dialogs 1
             adb install -r "$RUNNER_TEMP/expo-go.apk"
             adb reverse tcp:8081 tcp:8081
             adb reverse tcp:54321 tcp:54321
