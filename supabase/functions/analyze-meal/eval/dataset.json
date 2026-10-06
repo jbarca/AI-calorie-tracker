@@ -85,7 +85,7 @@
     "category": "single-food",
     "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1566922978/rgb.png",
     "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
-    "notes": "Nutrition5k dish_1566922978: 84 g weighed; scrambled eggs 84 g (portion pair: small and large of the same food)"
+    "notes": "Nutrition5k dish_1566922978: 84 g weighed; scrambled eggs 84 g"
   },
   {
     "image": "n5k-dish_1567107049.jpg",
@@ -93,7 +93,7 @@
     "category": "single-food",
     "source": "https://storage.googleapis.com/nutrition5k_dataset/nutrition5k_dataset/imagery/realsense_overhead/dish_1567107049/rgb.png",
     "license": "Nutrition5k (Thames et al., CVPR 2021), CC BY 4.0",
-    "notes": "Nutrition5k dish_1567107049: 23 g weighed; brownies 23 g (portion pair: small and large of the same food)"
+    "notes": "Nutrition5k dish_1567107049: 23 g weighed; brownies 23 g"
   },
   {
     "image": "n5k-dish_1560888817.jpg",

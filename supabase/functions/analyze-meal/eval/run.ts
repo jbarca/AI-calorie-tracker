@@ -10,11 +10,19 @@ import Anthropic from '@anthropic-ai/sdk';
 import { encodeBase64 } from '@std/encoding/base64';
 import { analyzeWithClaude, EFFORT_LEVELS, MODEL } from '../claude.ts';
 import { detectImageType, MAX_IMAGE_BYTES } from '../image.ts';
-import { Dataset, type Entry } from './dataset.ts';
-import { type EvalRow, formatReport, summarize, totalTokens } from './metrics.ts';
+import { Dataset, duplicateImages, type Entry } from './dataset.ts';
+import {
+  type EvalRow,
+  formatReport,
+  sampleAcrossCategories,
+  summarize,
+  totalTokens,
+} from './metrics.ts';
 
 const EVAL_DIR = new URL('./', import.meta.url);
 const DATASET_URL = new URL('dataset.json', EVAL_DIR);
+/** Optional, gitignored labels for your own photos; appended to dataset.json. */
+const LOCAL_DATASET_URL = new URL('dataset.local.json', EVAL_DIR);
 const PHOTOS_URL = new URL('photos/', EVAL_DIR);
 const RESULTS_URL = new URL('results/', EVAL_DIR);
 
@@ -27,7 +35,9 @@ function parseArgs(args: string[]): { yes: boolean; limit: number | null } {
     else if (arg === '--limit' || arg.startsWith('--limit=')) {
       const raw = arg === '--limit' ? args[++i] : arg.slice('--limit='.length);
       const n = Number(raw);
-      if (!Number.isInteger(n) || n <= 0) fail(`--limit needs a positive integer, got ${raw}`);
+      if (!Number.isInteger(n) || n <= 0) {
+        fail(`--limit needs a positive integer, got ${raw}`);
+      }
       limit = n;
     } else fail(`unknown argument: ${arg}`);
   }
@@ -39,24 +49,45 @@ function fail(message: string): never {
   Deno.exit(1);
 }
 
-async function loadDataset(): Promise<Entry[]> {
+async function readDataset(url: URL, name: string, required: boolean): Promise<Entry[]> {
   let raw: string;
   try {
-    raw = await Deno.readTextFile(DATASET_URL);
+    raw = await Deno.readTextFile(url);
   } catch (err) {
     if (err instanceof Deno.errors.NotFound) {
-      fail('eval/dataset.json not found. Copy dataset.example.json and label your photos.');
+      if (!required) return [];
+      fail(`eval/${name} not found. Restore it with \`git restore ${name}\`.`);
     }
     throw err;
   }
-  const parsed = Dataset.safeParse(JSON.parse(raw));
-  if (!parsed.success) fail(`eval/dataset.json is invalid:\n${parsed.error.message}`);
-  for (const entry of parsed.data) {
+  let json: unknown;
+  try {
+    json = JSON.parse(raw);
+  } catch (err) {
+    fail(`eval/${name} is not valid JSON: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  const parsed = Dataset.safeParse(json);
+  if (!parsed.success) {
+    fail(`eval/${name} is invalid:\n${parsed.error.message}`);
+  }
+  return parsed.data;
+}
+
+async function loadDataset(): Promise<Entry[]> {
+  const entries = [
+    ...(await readDataset(DATASET_URL, 'dataset.json', true)),
+    ...(await readDataset(LOCAL_DATASET_URL, 'dataset.local.json', false)),
+  ];
+  for (const entry of entries) {
     if ((entry.is_food ?? true) && entry.true_kcal <= 0) {
       fail(`${entry.image}: food photos need true_kcal > 0 (set is_food: false for non-food)`);
     }
   }
-  return parsed.data;
+  const dupes = duplicateImages(entries);
+  if (dupes.length > 0) {
+    fail(`these images are listed more than once: ${dupes.join(', ')}`);
+  }
+  return entries;
 }
 
 async function evaluate(client: Anthropic, entry: Entry, effort: string): Promise<EvalRow> {
@@ -74,7 +105,9 @@ async function evaluate(client: Anthropic, entry: Entry, effort: string): Promis
   const started = Date.now();
   try {
     const bytes = await Deno.readFile(new URL(entry.image, PHOTOS_URL));
-    if (bytes.length > MAX_IMAGE_BYTES) throw new Error(`image is over ${MAX_IMAGE_BYTES} bytes`);
+    if (bytes.length > MAX_IMAGE_BYTES) {
+      throw new Error(`image is over ${MAX_IMAGE_BYTES} bytes`);
+    }
     const mediaType = detectImageType(bytes, entry.image);
     if (mediaType === null || mediaType === 'image/heic') {
       throw new Error(`unsupported image type (${mediaType ?? 'unknown'}); use JPEG, PNG or WebP`);
@@ -98,7 +131,10 @@ async function evaluate(client: Anthropic, entry: Entry, effort: string): Promis
         predicted_is_food: out.analysis.is_food,
       };
     }
-    return { ...common, error: out.kind === 'invalid_output' ? out.error : undefined };
+    return {
+      ...common,
+      error: out.kind === 'invalid_output' ? out.error : undefined,
+    };
   } catch (err) {
     return {
       ...base,
@@ -117,8 +153,8 @@ async function main() {
   }
 
   const dataset = await loadDataset();
-  const entries = limit === null ? dataset : dataset.slice(0, limit);
-  if (entries.length === 0) fail('eval/dataset.json has no entries.');
+  const entries = limit === null ? dataset : sampleAcrossCategories(dataset, limit);
+  if (entries.length === 0) fail('the eval dataset has no entries.');
 
   // Fail on missing photos before anything is spent.
   const missing: string[] = [];
@@ -129,7 +165,9 @@ async function main() {
       missing.push(entry.image);
     }
   }
-  if (missing.length > 0) fail(`missing photos in eval/photos/: ${missing.join(', ')}`);
+  if (missing.length > 0) {
+    fail(`missing photos in eval/photos/: ${missing.join(', ')}`);
+  }
 
   console.log(
     `${entries.length} image(s) from eval/dataset.json -> ${MODEL}, effort ${effort}.\n` +

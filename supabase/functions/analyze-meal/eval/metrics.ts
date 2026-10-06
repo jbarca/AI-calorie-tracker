@@ -43,7 +43,9 @@ export interface EvalSummary {
 
 /** Signed percentage error of one prediction; positive means an overestimate. */
 export function percentError(predicted: number, actual: number): number {
-  if (!(actual > 0)) throw new RangeError(`true_kcal must be > 0, got ${actual}`);
+  if (!(actual > 0)) {
+    throw new RangeError(`true_kcal must be > 0, got ${actual}`);
+  }
   return ((predicted - actual) / actual) * 100;
 }
 
@@ -95,7 +97,9 @@ export function summarizeByCategory(rows: readonly EvalRow[]): CategorySummary[]
   for (const r of rows) {
     if (!r.expected_is_food) continue;
     const key = r.category ?? 'uncategorised';
-    groups.set(key, [...(groups.get(key) ?? []), r]);
+    const group = groups.get(key);
+    if (group) group.push(r);
+    else groups.set(key, [r]);
   }
   return [...groups.keys()].sort().map((category) => {
     const s = summarize(groups.get(category)!);
@@ -107,6 +111,31 @@ export function summarizeByCategory(rows: readonly EvalRow[]): CategorySummary[]
       within_20: s.within_20,
     };
   });
+}
+
+/**
+ * The first `n` entries taken round-robin across categories (in order of first appearance), so a
+ * `--limit` smoke test touches every kind of photo. Entries keep their order within a category.
+ */
+export function sampleAcrossCategories<T extends { category?: string }>(
+  entries: readonly T[],
+  n: number,
+): T[] {
+  const queues = new Map<string, T[]>();
+  for (const e of entries) {
+    const key = e.category ?? 'uncategorised';
+    const q = queues.get(key);
+    if (q) q.push(e);
+    else queues.set(key, [e]);
+  }
+  const lists = [...queues.values()];
+  const picked: T[] = [];
+  for (let i = 0; picked.length < n && picked.length < entries.length; i++) {
+    for (const list of lists) {
+      if (i < list.length && picked.length < n) picked.push(list[i]!);
+    }
+  }
+  return picked;
 }
 
 /** Input + output + cache read/write tokens of one response's `usage`. */

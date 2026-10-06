@@ -75,7 +75,9 @@ them.
 
 ## 3. Label your own photos
 
-Append one entry per photo of your own to `dataset.json`, without a `source`:
+Add one entry per photo of your own to `supabase/functions/analyze-meal/eval/dataset.local.json`
+(a JSON array like `dataset.json`; gitignored, and the runner appends it to the reference set),
+without a `source`:
 
 ```json
 { "image": "chicken-rice-01.jpg", "true_kcal": 610, "category": "mixed-dish", "notes": "150 g chicken, 180 g rice, 1 tsp oil; weighed" }
@@ -83,12 +85,13 @@ Append one entry per photo of your own to `dataset.json`, without a `source`:
 
 - `true_kcal` must be above 0 for food photos. Use 0 with `"is_food": false` for no-food photos.
 - `category` groups the row in the per-category breakdown; reuse `mixed-plate`, `single-food`,
-  `packaged`, `drink` and `non-food`, or add your own.
+  `packaged` and `drink`, or add your own. The breakdown covers food photos only: non-food photos
+  are reported as the separate Non-food accuracy figure, whatever their category.
 - Use `notes` to record how you measured, so the label can be checked later.
 - When you add or relabel photos, note it in the run log. The new MAPE is then a new baseline and
   isn't directly comparable with earlier runs.
-- Keep personal photos out of commits: if you'd rather not share their labels either, keep them in
-  a local copy of `dataset.json` and don't commit it.
+- `dataset.local.json` never reaches a commit, so your labels stay private and `dataset.json`
+  stays identical to the baseline.
 
 ## 4. Dry run (free)
 
@@ -106,7 +109,7 @@ photos, and prints how many images it would send. Fix anything it reports before
 # Optional: low | medium | high | xhigh | max. Defaults to medium, which matches the app.
 export ANALYZE_EFFORT=medium
 
-# Smoke test: 3 photos, to catch setup problems cheaply.
+# Smoke test: 3 photos from different categories, to catch setup problems cheaply.
 deno task --config supabase/functions/analyze-meal/deno.json eval --limit 3 --yes
 
 # Full run.

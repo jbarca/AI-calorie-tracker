@@ -3,6 +3,7 @@ import {
   type EvalRow,
   formatReport,
   percentError,
+  sampleAcrossCategories,
   summarize,
   summarizeByCategory,
   totalTokens,
@@ -49,7 +50,12 @@ Deno.test('summarize: MAPE, bias, ±20% hit rate over food rows', () => {
 Deno.test('summarize: failures and non-food rows are kept out of the kcal metrics', () => {
   const s = summarize([
     row({ image: 'a', true_kcal: 500, predicted_kcal: 450 }), // -10%
-    row({ image: 'b', outcome: 'refused', predicted_kcal: null, predicted_is_food: null }),
+    row({
+      image: 'b',
+      outcome: 'refused',
+      predicted_kcal: null,
+      predicted_is_food: null,
+    }),
     row({
       image: 'c',
       expected_is_food: false,
@@ -117,12 +123,37 @@ Deno.test('formatReport: per-image rows and aggregates', () => {
 
 Deno.test('summarizeByCategory: per-category kcal metrics, non-food left out', () => {
   const cats = summarizeByCategory([
-    row({ image: 'a', category: 'packaged', true_kcal: 100, predicted_kcal: 110 }), // +10%
-    row({ image: 'b', category: 'packaged', true_kcal: 100, predicted_kcal: 70 }), // -30%
-    row({ image: 'c', category: 'mixed-plate', true_kcal: 500, predicted_kcal: 500 }),
+    row({
+      image: 'a',
+      category: 'packaged',
+      true_kcal: 100,
+      predicted_kcal: 110,
+    }), // +10%
+    row({
+      image: 'b',
+      category: 'packaged',
+      true_kcal: 100,
+      predicted_kcal: 70,
+    }), // -30%
+    row({
+      image: 'c',
+      category: 'mixed-plate',
+      true_kcal: 500,
+      predicted_kcal: 500,
+    }),
     row({ image: 'd', true_kcal: 200, predicted_kcal: 300 }), // +50%, no category
-    row({ image: 'e', category: 'packaged', outcome: 'refused', predicted_kcal: null }),
-    row({ image: 'f', category: 'non-food', expected_is_food: false, true_kcal: 0 }),
+    row({
+      image: 'e',
+      category: 'packaged',
+      outcome: 'refused',
+      predicted_kcal: null,
+    }),
+    row({
+      image: 'f',
+      category: 'non-food',
+      expected_is_food: false,
+      true_kcal: 0,
+    }),
   ]);
   assertEquals(
     cats.map((c) => c.category),
@@ -144,4 +175,18 @@ Deno.test('formatReport: category table only when there are several categories',
   assertStringIncludes(report, 'category');
   assertStringIncludes(report, 'packaged');
   assertStringIncludes(report, '20.0%');
+});
+
+Deno.test('sampleAcrossCategories: round-robin over categories, capped at n', () => {
+  const entries = [
+    { image: 'a1', category: 'a' },
+    { image: 'a2', category: 'a' },
+    { image: 'b1', category: 'b' },
+    { image: 'c1' },
+  ];
+  assertEquals(
+    sampleAcrossCategories(entries, 3).map((e) => e.image),
+    ['a1', 'b1', 'c1'],
+  );
+  assertEquals(sampleAcrossCategories(entries, 99).length, 4);
 });
