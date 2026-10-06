@@ -16,6 +16,8 @@ export default tseslint.config(
       'app/ios/**',
       'app/android/**',
       'app/expo-env.d.ts',
+      // Maestro flow scripts run in Maestro's JS runtime (globals: http, output, env values).
+      'app/.maestro/**',
     ],
   },
   js.configs.recommended,
