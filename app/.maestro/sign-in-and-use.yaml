@@ -7,13 +7,17 @@ appId: host.exp.exponent
     clearState: true
 - openLink: ${EXPO_URL}
 # First load bundles with Metro, which is slow on a cold CI runner. Expo Go also shows a one-time
-# "developer menu" sheet (it repeats the app title) over the app, so wait for either that sheet or
-# the sign-in field, dismiss the sheet if it is there, then wait for the field itself.
+# "developer menu" onboarding sheet over the app (it repeats the app title), and tapping Continue
+# opens the full menu. So wait for either that sheet or the sign-in field, dismiss the sheet and
+# the menu if they are there, then wait for the field itself.
 - extendedWaitUntil:
     visible: 'Continue|Email address|you@example\.com'
     timeout: 300000
 - tapOn:
     text: 'Continue'
+    optional: true
+- tapOn:
+    text: 'Close'
     optional: true
 - extendedWaitUntil:
     visible: 'Email address|you@example\.com'
