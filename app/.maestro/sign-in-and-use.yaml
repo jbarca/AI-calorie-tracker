@@ -68,6 +68,15 @@ appId: host.exp.exponent
 - killApp
 - launchApp
 - openLink: ${EXPO_URL}
+# If Expo Go stays on its home screen, open the project from Recent history.
+- extendedWaitUntil:
+    visible: 'Scan a meal|Recent history'
+    timeout: 120000
+- runFlow:
+    when:
+      visible: 'Recent history'
+    commands:
+      - tapOn: 'AI Calorie Tracker'
 - extendedWaitUntil:
     visible: 'Scan a meal'
     timeout: 120000
