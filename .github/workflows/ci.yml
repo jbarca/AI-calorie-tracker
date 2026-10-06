@@ -154,7 +154,8 @@ jobs:
           CI: '1'
           EXPO_NO_TELEMETRY: '1'
         run: |
-          nohup npx expo start --port 8081 --offline > "$RUNNER_TEMP/metro.log" 2>&1 &
+          # Production bundle: dev-only LogBox warning toasts otherwise cover the tab bar and swallow taps.
+          nohup npx expo start --no-dev --minify --port 8081 --offline > "$RUNNER_TEMP/metro.log" 2>&1 &
           for i in $(seq 1 60); do
             curl -fs http://localhost:8081/status | grep -q running && exit 0
             sleep 2
