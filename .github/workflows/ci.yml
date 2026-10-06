@@ -175,7 +175,7 @@ jobs:
             adb reverse tcp:8081 tcp:8081
             adb reverse tcp:54321 tcp:54321
             # The runner executes each line as its own `sh -c`, so no `\` continuations here.
-            cd app && maestro test .maestro/sign-in-and-use.yaml --env EMAIL=e2e-${{ github.run_id }}@example.com --env MAILPIT_URL=http://localhost:54324 --env EXPO_URL=exp://localhost:8081 --format junit --output "$RUNNER_TEMP/maestro-report.xml" --debug-output "$RUNNER_TEMP/maestro-debug"
+            cd app && maestro test .maestro/sign-in-and-use.yaml --env EMAIL=e2e-${{ github.run_id }}@example.com --env MAILPIT_URL=http://localhost:54324 --env EXPO_URL=exp://localhost:8081 --env SHOT_DIR="$RUNNER_TEMP" --format junit --output "$RUNNER_TEMP/maestro-report.xml" --debug-output "$RUNNER_TEMP/maestro-debug"
 
       - name: Upload Maestro artifacts
         if: always()
@@ -185,6 +185,7 @@ jobs:
           path: |
             ${{ runner.temp }}/maestro-report.xml
             ${{ runner.temp }}/maestro-debug
+            ${{ runner.temp }}/final-screen.png
             ${{ runner.temp }}/metro.log
           if-no-files-found: ignore
 

@@ -2,17 +2,21 @@
 # between tabs, relaunch to check the session persists, then sign out.
 # Run by .github/workflows/ci.yml (job "Expo Go e2e"). Env: EMAIL, MAILPIT_URL, EXPO_URL.
 appId: host.exp.exponent
+# Always leave a final screenshot (SHOT_DIR is uploaded by CI) so a failure shows what was on screen.
+onFlowComplete:
+  - takeScreenshot: ${SHOT_DIR}/final-screen
 ---
 - launchApp:
     clearState: true
 - openLink: ${EXPO_URL}
-# First load bundles with Metro, which is slow on a cold CI runner.
+# First load bundles with Metro, which is slow on a cold CI runner. The app title also shows on
+# Expo Go's loading screen, so wait for the sign-in field itself (by label or placeholder).
 - extendedWaitUntil:
-    visible: 'AI Calorie Tracker'
+    visible: 'Email address|you@example\.com'
     timeout: 300000
 
 # --- Sign in with the emailed 6-digit code ---------------------------------------------------
-- tapOn: 'Email address'
+- tapOn: 'Email address|you@example\.com'
 - inputText: ${EMAIL}
 - hideKeyboard
 - tapOn: 'Email me a sign-in link'
