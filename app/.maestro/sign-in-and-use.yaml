@@ -2,9 +2,6 @@
 # between tabs, relaunch to check the session persists, then sign out.
 # Run by .github/workflows/ci.yml (job "Expo Go e2e"). Env: EMAIL, MAILPIT_URL, EXPO_URL.
 appId: host.exp.exponent
-# Always leave a final screenshot (SHOT_DIR is uploaded by CI) so a failure shows what was on screen.
-onFlowComplete:
-  - takeScreenshot: ${SHOT_DIR}/final-screen
 ---
 - launchApp:
     clearState: true
