@@ -1,0 +1,90 @@
+# Drives the app inside Expo Go: sign in with the emailed code, change the daily goal, move
+# between tabs, relaunch to check the session persists, then sign out.
+# Run by .github/workflows/ci.yml (job "Expo Go e2e"). Env: EMAIL, MAILPIT_URL, EXPO_URL.
+appId: host.exp.exponent
+---
+- launchApp:
+    clearState: true
+- openLink: ${EXPO_URL}
+# First load bundles with Metro, which is slow on a cold CI runner. Expo Go also shows a one-time
+# "developer menu" onboarding sheet over the app (it repeats the app title), and tapping Continue
+# opens the full menu. So wait for either that sheet or the sign-in field, dismiss the sheet and
+# the menu if they are there, then wait for the field itself.
+- extendedWaitUntil:
+    visible: 'Continue|Email address|you@example\.com'
+    timeout: 300000
+- tapOn:
+    text: 'Continue'
+    optional: true
+- tapOn:
+    text: 'Close'
+    optional: true
+- extendedWaitUntil:
+    visible: 'Email address|you@example\.com'
+    timeout: 120000
+
+# --- Sign in with the emailed 6-digit code ---------------------------------------------------
+- tapOn: 'Email address|you@example\.com'
+- inputText: ${EMAIL}
+- hideKeyboard
+- tapOn: 'Email me a sign-in link'
+- extendedWaitUntil:
+    visible: '6-digit code'
+    timeout: 30000
+- runScript:
+    file: scripts/get-code.js
+    env:
+      EMAIL: ${EMAIL}
+      MAILPIT_URL: ${MAILPIT_URL}
+- tapOn: '6-digit code'
+- inputText: ${output.code}
+- hideKeyboard
+- tapOn: 'Verify code'
+
+# --- Today (empty state for a new user) ------------------------------------------------------
+- extendedWaitUntil:
+    visible: 'Scan a meal'
+    timeout: 30000
+- assertVisible: 'Describe a meal'
+
+# --- Settings: change the daily goal ---------------------------------------------------------
+- tapOn: 'Settings'
+- assertVisible: ${EMAIL}
+- tapOn: 'Daily calorie goal in kcal'
+- eraseText: 10
+- inputText: '2400'
+- hideKeyboard
+- tapOn: 'Save goal'
+- tapOn: 'Today'
+- assertVisible: '2400'
+
+# --- Other tabs render -----------------------------------------------------------------------
+- tapOn: 'History'
+- assertVisible: 'History'
+- tapOn: 'Scan'
+- assertVisible: 'Scan'
+
+# --- Session survives a relaunch -------------------------------------------------------------
+- killApp
+- launchApp
+- openLink: ${EXPO_URL}
+# If Expo Go stays on its home screen, open the project from Recent history.
+- extendedWaitUntil:
+    visible: 'Scan a meal|Recent history'
+    timeout: 120000
+- runFlow:
+    when:
+      visible: 'Recent history'
+    commands:
+      - tapOn: 'AI Calorie Tracker'
+- extendedWaitUntil:
+    visible: 'Scan a meal'
+    timeout: 120000
+- tapOn: 'Settings'
+- assertVisible: ${EMAIL}
+
+# --- Sign out --------------------------------------------------------------------------------
+- tapOn: 'Sign out'
+- extendedWaitUntil:
+    visible: 'Email me a sign-in link'
+    timeout: 30000

@@ -88,3 +88,115 @@ jobs:
           EXPO_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ci-dummy-anon-key
         run: npx expo export --platform android --output-dir /tmp/expo-export
+
+  # Runs the app in Expo Go on an Android emulator against a local Supabase stack, driven by
+  # Maestro flows in app/.maestro. This is the closest CI gets to the manual Expo Go QA pass.
+  # Photo analysis is not covered: it needs the camera and a live Anthropic key.
+  e2e:
+    name: Expo Go e2e (Android emulator)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      # Hardware acceleration: the emulator is unusably slow without KVM.
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.119.0
+      # Postgres, auth, storage and the gateway, plus Mailpit (local_smtp) so the test can read the
+      # emailed sign-in code.
+      - name: Start Supabase
+        run: >-
+          supabase start
+          -x studio,imgproxy,edge-runtime,logflare,vector,realtime,supavisor
+      - name: Export Supabase env for the app
+        run: |
+          ANON_KEY=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+          test -n "$ANON_KEY"
+          echo "::add-mask::$ANON_KEY"
+          echo "EXPO_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY" >> "$GITHUB_ENV"
+          # The emulator reaches the host through `adb reverse`, so localhost works for it too.
+          echo "EXPO_PUBLIC_SUPABASE_URL=http://localhost:54321" >> "$GITHUB_ENV"
+
+      - name: Install Maestro
+        run: |
+          curl -fsSL "https://get.maestro.mobile.dev" | bash
+          echo "$HOME/.maestro/bin" >> "$GITHUB_PATH"
+
+      - name: Download Expo Go for the app's SDK
+        run: |
+          SDK=$(cd app && node -p "require('expo/package.json').version.split('.')[0] + '.0.0'")
+          URL=$(curl -fsSL https://api.expo.dev/v2/versions/latest \
+            | jq -r --arg sdk "$SDK" '.data.sdkVersions[$sdk].androidClientUrl')
+          test -n "$URL" && test "$URL" != null
+          echo "Expo Go for SDK $SDK: $URL"
+          curl -fsSL -o "$RUNNER_TEMP/expo-go.apk" "$URL"
+
+      - name: Start Metro
+        working-directory: app
+        env:
+          CI: '1'
+          EXPO_NO_TELEMETRY: '1'
+        run: |
+          # Production bundle: dev-only LogBox warning toasts otherwise cover the tab bar and swallow taps.
+          nohup npx expo start --no-dev --minify --port 8081 --offline > "$RUNNER_TEMP/metro.log" 2>&1 &
+          for i in $(seq 1 60); do
+            curl -fs http://localhost:8081/status | grep -q running && exit 0
+            sleep 2
+          done
+          cat "$RUNNER_TEMP/metro.log"
+          exit 1
+
+      - name: Run Maestro flows on an emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          ram-size: 4096M
+          heap-size: 512M
+          disable-animations: true
+          script: |
+            # A slow CI emulator makes system apps ANR; the dialog then covers Expo Go and blocks Maestro.
+            adb shell settings put global hide_error_dialogs 1
+            adb install -r "$RUNNER_TEMP/expo-go.apk"
+            adb reverse tcp:8081 tcp:8081
+            adb reverse tcp:54321 tcp:54321
+            # The runner executes each line as its own `sh -c`, so no `\` continuations here.
+            cd app && (maestro test .maestro/sign-in-and-use.yaml --env EMAIL=e2e-${{ github.run_id }}@example.com --env MAILPIT_URL=http://localhost:54324 --env EXPO_URL=exp://localhost:8081 --format junit --output "$RUNNER_TEMP/maestro-report.xml" --debug-output "$RUNNER_TEMP/maestro-debug"; echo $? > "$RUNNER_TEMP/maestro-exit")
+            # On failure, show which step failed, what was on screen and what the logs say, before the emulator goes away.
+            if [ "$(cat "$RUNNER_TEMP/maestro-exit")" != 0 ]; then bash .github/scripts/e2e-diagnostics.sh; fi
+            test "$(cat "$RUNNER_TEMP/maestro-exit")" = 0
+
+      - name: Upload Maestro artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-e2e
+          path: |
+            ${{ runner.temp }}/maestro-report.xml
+            ${{ runner.temp }}/maestro-debug
+            ${{ runner.temp }}/final-screen.png
+            ${{ runner.temp }}/metro.log
+          if-no-files-found: ignore
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup
