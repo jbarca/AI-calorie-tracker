@@ -6,6 +6,8 @@
 /** One evaluated image. `predicted_*` are null when the call did not produce an analysis. */
 export interface EvalRow {
   image: string;
+  /** Dataset category (e.g. `mixed-plate`, `packaged`), for the per-category breakdown. */
+  category?: string;
   true_kcal: number;
   /** Ground truth: false for photos that do not show food. */
   expected_is_food: boolean;
@@ -41,7 +43,9 @@ export interface EvalSummary {
 
 /** Signed percentage error of one prediction; positive means an overestimate. */
 export function percentError(predicted: number, actual: number): number {
-  if (!(actual > 0)) throw new RangeError(`true_kcal must be > 0, got ${actual}`);
+  if (!(actual > 0)) {
+    throw new RangeError(`true_kcal must be > 0, got ${actual}`);
+  }
   return ((predicted - actual) / actual) * 100;
 }
 
@@ -75,6 +79,65 @@ export function summarize(rows: readonly EvalRow[]): EvalSummary {
   };
 }
 
+/** Food-photo accuracy for one dataset category. */
+export interface CategorySummary {
+  category: string;
+  scored_food: number;
+  mape: number | null;
+  bias_pct: number | null;
+  within_20: number | null;
+}
+
+/**
+ * MAPE, bias and the ±20% hit rate per category over food photos, sorted by category name.
+ * Rows without a category are grouped as `uncategorised`; non-food rows are left out.
+ */
+export function summarizeByCategory(rows: readonly EvalRow[]): CategorySummary[] {
+  const groups = new Map<string, EvalRow[]>();
+  for (const r of rows) {
+    if (!r.expected_is_food) continue;
+    const key = r.category ?? 'uncategorised';
+    const group = groups.get(key);
+    if (group) group.push(r);
+    else groups.set(key, [r]);
+  }
+  return [...groups.keys()].sort().map((category) => {
+    const s = summarize(groups.get(category)!);
+    return {
+      category,
+      scored_food: s.scored_food,
+      mape: s.mape,
+      bias_pct: s.bias_pct,
+      within_20: s.within_20,
+    };
+  });
+}
+
+/**
+ * The first `n` entries taken round-robin across categories (in order of first appearance), so a
+ * `--limit` smoke test touches every kind of photo. Entries keep their order within a category.
+ */
+export function sampleAcrossCategories<T extends { category?: string }>(
+  entries: readonly T[],
+  n: number,
+): T[] {
+  const queues = new Map<string, T[]>();
+  for (const e of entries) {
+    const key = e.category ?? 'uncategorised';
+    const q = queues.get(key);
+    if (q) q.push(e);
+    else queues.set(key, [e]);
+  }
+  const lists = [...queues.values()];
+  const picked: T[] = [];
+  for (let i = 0; picked.length < n && picked.length < entries.length; i++) {
+    for (const list of lists) {
+      if (i < list.length && picked.length < n) picked.push(list[i]!);
+    }
+  }
+  return picked;
+}
+
 /** Input + output + cache read/write tokens of one response's `usage`. */
 export function totalTokens(usage: {
   input_tokens: number;
@@ -100,7 +163,7 @@ function table(header: string[], body: string[][]): string {
   return [line(header), line(widths.map((w) => '-'.repeat(w))), ...body.map(line)].join('\n');
 }
 
-/** Plain-text report: one row per image, then the aggregates. */
+/** Plain-text report: one row per image, the aggregates, then the per-category breakdown. */
 export function formatReport(rows: readonly EvalRow[], summary: EvalSummary): string {
   const perImage = table(
     ['image', 'food?', 'true', 'pred', 'err %', 'outcome', 'tokens', 'ms'],
@@ -137,5 +200,17 @@ export function formatReport(rows: readonly EvalRow[], summary: EvalSummary): st
       ['total tokens', String(summary.total_tokens)],
     ],
   );
-  return `${perImage}\n\n${aggregates}`;
+  const categories = summarizeByCategory(rows);
+  if (categories.length < 2) return `${perImage}\n\n${aggregates}`;
+  const byCategory = table(
+    ['category', 'scored', 'MAPE', 'bias', '±20%'],
+    categories.map((c) => [
+      c.category,
+      String(c.scored_food),
+      fmt(c.mape, 1, '%'),
+      fmt(c.bias_pct, 1, '%'),
+      fmt(c.within_20 === null ? null : c.within_20 * 100, 0, '%'),
+    ]),
+  );
+  return `${perImage}\n\n${aggregates}\n\n${byCategory}`;
 }

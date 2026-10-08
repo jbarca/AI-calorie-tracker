@@ -51,6 +51,7 @@
   "private": true,
   "jest": {
     "preset": "jest-expo",
+    "testTimeout": 20000,
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/src/$1"
     },
