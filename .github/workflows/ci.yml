@@ -91,11 +91,15 @@ jobs:
 
   # Runs the app in Expo Go on an Android emulator against a local Supabase stack, driven by
   # Maestro flows in app/.maestro. This is the closest CI gets to the manual Expo Go QA pass.
-  # Photo analysis is not covered: it needs the camera and a live Anthropic key.
+  # When the ANTHROPIC_API_KEY secret is set, it also serves the analyze-meal Edge Function and runs
+  # a real photo analysis against Claude (analyze-photo.yaml). Without the secret (e.g. PRs from
+  # forks) that flow is skipped.
   e2e:
     name: Expo Go e2e (Android emulator)
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      RUN_AI_E2E: ${{ secrets.ANTHROPIC_API_KEY != '' }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -133,6 +137,28 @@ jobs:
           echo "EXPO_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY" >> "$GITHUB_ENV"
           # The emulator reaches the host through `adb reverse`, so localhost works for it too.
           echo "EXPO_PUBLIC_SUPABASE_URL=http://localhost:54321" >> "$GITHUB_ENV"
+
+      # Only for the real AI flow. The key goes into the function's env file, never into the app.
+      - name: Serve the analyze-meal Edge Function
+        if: env.RUN_AI_E2E == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          umask 077
+          {
+            echo "ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY"
+            echo "ANALYZE_EFFORT=low"
+          } > "$RUNNER_TEMP/functions.env"
+          nohup supabase functions serve --env-file "$RUNNER_TEMP/functions.env" > "$RUNNER_TEMP/functions.log" 2>&1 &
+          # Ready once the gateway reaches the function (CORS preflight answers 200).
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -X OPTIONS http://localhost:54321/functions/v1/analyze-meal || true)
+            test "$code" = 200 && exit 0
+            sleep 2
+          done
+          echo "analyze-meal did not come up (last status: $code)"
+          cat "$RUNNER_TEMP/functions.log"
+          exit 1
 
       - name: Install Maestro
         run: |
@@ -182,8 +208,11 @@ jobs:
             # The runner executes each line as its own `sh -c`, so no `\` continuations here.
             cd app && (maestro test .maestro/sign-in-and-use.yaml --env EMAIL=e2e-${{ github.run_id }}@example.com --env MAILPIT_URL=http://localhost:54324 --env EXPO_URL=exp://localhost:8081 --format junit --output "$RUNNER_TEMP/maestro-report.xml" --debug-output "$RUNNER_TEMP/maestro-debug"; echo $? > "$RUNNER_TEMP/maestro-exit")
             # On failure, show which step failed, what was on screen and what the logs say, before the emulator goes away.
-            if [ "$(cat "$RUNNER_TEMP/maestro-exit")" != 0 ]; then bash .github/scripts/e2e-diagnostics.sh; fi
-            test "$(cat "$RUNNER_TEMP/maestro-exit")" = 0
+            if [ "$(cat "$RUNNER_TEMP/maestro-exit")" != 0 ]; then bash .github/scripts/e2e-diagnostics.sh "$RUNNER_TEMP/maestro-debug" "$RUNNER_TEMP/final-screen.png"; fi
+            # Real photo analysis against Claude, only when the ANTHROPIC_API_KEY secret is set.
+            if [ "$RUN_AI_E2E" = true ]; then cd app && (maestro test .maestro/analyze-photo.yaml --env EMAIL=e2e-ai-${{ github.run_id }}@example.com --env MAILPIT_URL=http://localhost:54324 --env EXPO_URL=exp://localhost:8081 --format junit --output "$RUNNER_TEMP/maestro-ai-report.xml" --debug-output "$RUNNER_TEMP/maestro-ai-debug"; echo $? > "$RUNNER_TEMP/maestro-ai-exit"); else echo "ANTHROPIC_API_KEY is not set; skipping analyze-photo.yaml"; echo 0 > "$RUNNER_TEMP/maestro-ai-exit"; fi
+            if [ "$(cat "$RUNNER_TEMP/maestro-ai-exit")" != 0 ]; then bash .github/scripts/e2e-diagnostics.sh "$RUNNER_TEMP/maestro-ai-debug" "$RUNNER_TEMP/final-screen-ai.png"; fi
+            test "$(cat "$RUNNER_TEMP/maestro-exit")" = 0 && test "$(cat "$RUNNER_TEMP/maestro-ai-exit")" = 0
 
       - name: Upload Maestro artifacts
         if: always()
@@ -194,7 +223,11 @@ jobs:
             ${{ runner.temp }}/maestro-report.xml
             ${{ runner.temp }}/maestro-debug
             ${{ runner.temp }}/final-screen.png
+            ${{ runner.temp }}/maestro-ai-report.xml
+            ${{ runner.temp }}/maestro-ai-debug
+            ${{ runner.temp }}/final-screen-ai.png
             ${{ runner.temp }}/metro.log
+            ${{ runner.temp }}/functions.log
           if-no-files-found: ignore
 
       - name: Stop Supabase

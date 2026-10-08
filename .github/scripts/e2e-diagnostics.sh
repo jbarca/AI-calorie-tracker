@@ -1,13 +1,21 @@
 #!/usr/bin/env bash
 # Prints what happened after a failed Maestro run, while the emulator is still up. Run by the
 # "Run Maestro flows on an emulator" step in ci.yml; every command is best-effort.
+# Usage: e2e-diagnostics.sh <maestro debug dir> <screenshot path>
 set +e
+DEBUG_DIR="${1:-$RUNNER_TEMP/maestro-debug}"
+SCREENSHOT="${2:-$RUNNER_TEMP/final-screen.png}"
 
 echo "=== Maestro commands (status, command) ==="
-find "$RUNNER_TEMP/maestro-debug" -name 'commands-*.json' -exec jq -c '.[] | {status: .metadata.status, command: (.command | keys)}' {} \; 2>&1 | head -80
+find "$DEBUG_DIR" -name 'commands-*.json' -exec jq -c '.[] | {status: .metadata.status, command: (.command | keys)}' {} \; 2>&1 | head -80
 
 echo "=== Metro log (tail) ==="
 tail -n 40 "$RUNNER_TEMP/metro.log"
+
+if [ -f "$RUNNER_TEMP/functions.log" ]; then
+  echo "=== Edge Functions log (tail) ==="
+  tail -n 40 "$RUNNER_TEMP/functions.log"
+fi
 
 echo "=== Text visible on screen ==="
 adb shell uiautomator dump /sdcard/ui.xml > /dev/null
@@ -16,4 +24,4 @@ adb shell cat /sdcard/ui.xml | grep -oE '(text|content-desc)="[^"]+"' | sort -u
 echo "=== logcat (filtered) ==="
 adb logcat -d -t 800 | grep -iE 'ReactNativeJS|AndroidRuntime|FATAL|expo' | tail -60
 
-adb exec-out screencap -p > "$RUNNER_TEMP/final-screen.png"
+adb exec-out screencap -p > "$SCREENSHOT"

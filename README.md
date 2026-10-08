@@ -173,8 +173,13 @@ branch or PR are cancelled. Jobs:
 | `functions` | Deno 2.x: `test:functions`, `check:functions`                                                                  |
 | `database`  | Supabase CLI: `supabase start`, `db reset`, `test db` (pgTAP in `supabase/tests`), `db lint` (fails on errors) |
 | `expo`      | `npx expo export --platform android` with dummy `EXPO_PUBLIC_*` values, as a bundle smoke test                 |
+| `e2e`       | Expo Go on an Android emulator against local Supabase, driven by the Maestro flows in `app/.maestro`           |
 
-The accuracy eval never runs in CI (it calls the paid API).
+The accuracy eval never runs in CI (it calls the paid API). The `e2e` job makes one real Claude
+call only when the repository secret `ANTHROPIC_API_KEY` is set (Settings → Secrets and variables
+→ Actions): it then serves `analyze-meal` with `ANALYZE_EFFORT=low` and runs
+`app/.maestro/analyze-photo.yaml`, which picks a meal photo from the gallery, analyzes it, saves it
+and checks it appears on Today. Without the secret (including PRs from forks) that flow is skipped.
 
 ## Edge Function: `analyze-meal`
 
