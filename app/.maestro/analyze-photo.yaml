@@ -1,0 +1,41 @@
+# Real AI check: picks a meal photo from the gallery, has the analyze-meal Edge Function send it
+# to Claude, then saves the result and checks it lands on Today. Calls the live Anthropic API, so
+# CI runs it only when ANTHROPIC_API_KEY is set (job "Expo Go e2e" in .github/workflows/ci.yml).
+# Env: EMAIL, MAILPIT_URL, EXPO_URL.
+# Photo: assets/meal.jpg is Nutrition5k dish_1559668314 (Thames et al., CVPR 2021, CC BY 4.0):
+# scrambled eggs, hash browns and salad, 552 kcal weighed.
+appId: host.exp.exponent
+---
+- addMedia:
+    - assets/meal.jpg
+- runFlow: subflows/sign-in.yaml
+
+# --- Pick the photo --------------------------------------------------------------------------
+- tapOn: 'Scan'
+# Shown both on the camera screen and on the camera-permission screen.
+- tapOn: 'Choose from library'
+# Android's photo picker labels thumbnails "Photo taken on <date>"; the document picker shows the
+# file name. The fixture is the only photo on a fresh emulator.
+- extendedWaitUntil:
+    visible: 'Photo taken on.*|meal.*\.jpg'
+    timeout: 30000
+- tapOn: 'Photo taken on.*|meal.*\.jpg'
+
+# --- Analyze with Claude ---------------------------------------------------------------------
+- extendedWaitUntil:
+    visible: 'Analyze'
+    timeout: 30000
+- tapOn: 'Analyze'
+# The review screen opens with the estimate's total. On an error, PhotoPreview shows the error
+# notice instead and this times out with it on screen.
+- extendedWaitUntil:
+    visible: '[1-9]\d* kcal'
+    timeout: 120000
+
+# --- Save and check Today --------------------------------------------------------------------
+- scrollUntilVisible:
+    element: 'Save to log'
+- tapOn: 'Save to log'
+- extendedWaitUntil:
+    visible: '.* at .*, [1-9]\d* kcal'
+    timeout: 30000
